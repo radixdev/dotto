@@ -52,7 +52,7 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
   private void controlFramerate() {
     // Sleep a bit maybe
     try {
-      Thread.sleep(FramerateUtils.getRefreshIntervalFromFramerate(90));
+      Thread.sleep(FramerateUtils.getRefreshIntervalFromFramerate(200));
     } catch (InterruptedException e) {
       Log.e(TAG, "Exception while sleeping in game loop", e);
     }
@@ -67,18 +67,21 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
   }
 
   public volatile int tx=0, ty=0;
+  public volatile float scaleFactor = 1f;
 
   @Override
   public void draw(Canvas canvas) {
     super.draw(canvas);
 
     final Paint pixelPaint = new Paint();
-    pixelPaint.setColor(Color.WHITE);
+    pixelPaint.setColor(Color.rgb(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
     for (int i = 0; i < 32; i++) {
       mBackingCanvas.drawPoint(random.nextInt(1000), random.nextInt(1000), pixelPaint);
     }
 
-    mTransformMatrix.setTranslate(tx, ty);
+    // TODO: 4/19/2017 scale where the gesture takes place
+    mTransformMatrix.setScale(scaleFactor, scaleFactor);
+    mTransformMatrix.postTranslate(tx, ty);
     canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, null);
   }
 
@@ -105,7 +108,6 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
     mCanvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
     mBackingCanvas = new Canvas();
     mBackingCanvas.setBitmap(mCanvasBitmap);
-
     mTransformMatrix = new Matrix();
   }
 
