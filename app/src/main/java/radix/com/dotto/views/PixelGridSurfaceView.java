@@ -13,6 +13,7 @@ import android.view.SurfaceView;
 import java.util.Random;
 
 import radix.com.dotto.models.WorldMap;
+import radix.com.dotto.utils.FramerateUtils;
 
 public class PixelGridSurfaceView extends SurfaceView implements Runnable, SurfaceHolder.Callback {
   private static final String TAG = PixelGridSurfaceView.class.toString();
@@ -44,13 +45,16 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
   public void run() {
     while (mIsGamePlaying) {
       draw();
+      controlFramerate();
+    }
+  }
 
-      // Sleep a bit maybe
-      try {
-        Thread.sleep(16);
-      } catch (InterruptedException e) {
-        Log.e(TAG, "Exception while sleeping in game loop", e);
-      }
+  private void controlFramerate() {
+    // Sleep a bit maybe
+    try {
+      Thread.sleep(FramerateUtils.getRefreshIntervalFromFramerate(90));
+    } catch (InterruptedException e) {
+      Log.e(TAG, "Exception while sleeping in game loop", e);
     }
   }
 
