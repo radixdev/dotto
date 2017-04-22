@@ -6,12 +6,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.util.Random;
 
+import radix.com.dotto.controllers.UserGestureController;
 import radix.com.dotto.models.WorldMap;
 import radix.com.dotto.utils.FramerateUtils;
 
@@ -20,7 +22,6 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
 
   private final WorldMap mWorldMap;
 
-  // The
   private final SurfaceHolder mSurfaceHolder;
   private volatile boolean mIsGamePlaying;
   private Thread mGameThread = null;
@@ -30,10 +31,14 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
   private Canvas mBackingCanvas = null;
   private Matrix mTransformMatrix;
 
+  // Controller interface
+  private UserGestureController mUserGestureController;
+
   private Random random;
 
-  public PixelGridSurfaceView(Context context, WorldMap map) {
+  public PixelGridSurfaceView(Context context, WorldMap map, UserGestureController userGestureController) {
     super(context);
+    this.mUserGestureController = userGestureController;
     mWorldMap = map;
 
     mSurfaceHolder = getHolder();
@@ -52,7 +57,7 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
   private void controlFramerate() {
     // Sleep a bit maybe
     try {
-      Thread.sleep(FramerateUtils.getRefreshIntervalFromFramerate(200));
+      Thread.sleep(FramerateUtils.getRefreshIntervalFromFramerate(60));
     } catch (InterruptedException e) {
       Log.e(TAG, "Exception while sleeping in game loop", e);
     }
@@ -66,22 +71,39 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
     }
   }
 
-  public volatile int tx=0, ty=0;
-  public volatile float scaleFactor = 1f;
-
+  Matrix mPreviousTransform = new Matrix();
   @Override
   public void draw(Canvas canvas) {
     super.draw(canvas);
 
     final Paint pixelPaint = new Paint();
     pixelPaint.setColor(Color.rgb(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < 8; i++) {
       mBackingCanvas.drawPoint(random.nextInt(1000), random.nextInt(1000), pixelPaint);
     }
 
     // TODO: 4/19/2017 scale where the gesture takes place
+    float scaleFactor = mUserGestureController.getScaleFactor();
+    int screenOffsetX = mUserGestureController.getScreenOffsetX();
+    int screenOffsetY = mUserGestureController.getScreenOffsetY();
+    PointF zoomCenter = mUserGestureController.getLastZoomCenter();
+    zoomCenter = mUserGestureController.getLastTouch();
+
+    Matrix inverse = new Matrix();
+    mPreviousTransform.invert(inverse);
+    float[] screenPts = new float[]{zoomCenter.x, zoomCenter.y};
+    inverse.mapPoints(screenPts);
+
+    mTransformMatrix = new Matrix();
+//    mTransformMatrix.setScale(scaleFactor, scaleFactor);
+//    mTransformMatrix.postTranslate(200, 200);
+//    mTransformMatrix.postTranslate(screenOffsetX, screenOffsetY);
+
+//    Log.d(TAG, "screen pts " + screenPts[0] + "  " + screenPts[1]);
+    Log.d(TAG, "screenOffsetX " + screenOffsetX + "  " + screenOffsetY);
     mTransformMatrix.setScale(scaleFactor, scaleFactor);
-    mTransformMatrix.postTranslate(tx, ty);
+    mTransformMatrix.postTranslate(screenOffsetX, screenOffsetY);
+    mPreviousTransform.set(mTransformMatrix);
     canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, null);
   }
 
@@ -108,6 +130,8 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
     mCanvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
     mBackingCanvas = new Canvas();
     mBackingCanvas.setBitmap(mCanvasBitmap);
+
+//    mBackingCanvas.drawColor(Color.rgb(10, 10, 10));
     mTransformMatrix = new Matrix();
   }
 

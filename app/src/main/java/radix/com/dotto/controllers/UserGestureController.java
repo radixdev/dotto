@@ -1,17 +1,64 @@
 package radix.com.dotto.controllers;
 
+import android.graphics.PointF;
+
+import radix.com.dotto.utils.NumberUtils;
+
 /**
  *
  */
 public class UserGestureController {
+  private static final String TAG = UserGestureController.class.toString();
 
   private float mScaleFactor;
   private int mScreenOffsetX, mScreenOffsetY;
+  private PointF mLastZoomCenter, mLastTouch;
 
   public UserGestureController() {
     mScaleFactor = 1f;
     mScreenOffsetX = 0;
     mScreenOffsetY = 0;
+    mLastZoomCenter = new PointF();
+    mLastTouch = new PointF();
+  }
+
+  /**
+   *
+   * @param zoomFactor
+   * @param zoomCenterScreen where the user is zooming on screen
+   */
+  public void onUserZoom(float zoomFactor, PointF zoomCenterScreen) {
+    float oldZoom = mScaleFactor;
+    mScaleFactor *= zoomFactor;
+    mScaleFactor = NumberUtils.clamp(mScaleFactor, 0.4f, 500f);
+
+    float zoomRatio = mScaleFactor / oldZoom;
+    float sx = mScreenOffsetX;
+    float sy = mScreenOffsetY;
+    float fx = zoomCenterScreen.x;
+    float fy = zoomCenterScreen.y;
+
+    mScreenOffsetX -= (int) ((sx - fx) * (1 - zoomFactor));
+    mScreenOffsetY -= (int) ((sy - fy) * (1 - zoomFactor));
+
+    mLastZoomCenter = zoomCenterScreen;
+  }
+
+  public void onUserScroll(float scrollDistanceX, float scrollDistanceY) {
+    mScreenOffsetX -= scrollDistanceX*1;
+    mScreenOffsetY -= scrollDistanceY*1;
+  }
+
+  public void onUserTouch(PointF touch) {
+    mLastTouch = touch;
+  }
+
+  public PointF getLastZoomCenter() {
+    return mLastZoomCenter;
+  }
+
+  public PointF getLastTouch() {
+    return mLastTouch;
   }
 
   public float getScaleFactor() {
