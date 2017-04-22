@@ -57,7 +57,7 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
   private void controlFramerate() {
     // Sleep a bit maybe
     try {
-      Thread.sleep(FramerateUtils.getRefreshIntervalFromFramerate(60));
+      Thread.sleep(FramerateUtils.getRefreshIntervalFromFramerate(100));
     } catch (InterruptedException e) {
       Log.e(TAG, "Exception while sleeping in game loop", e);
     }
@@ -95,12 +95,9 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
     inverse.mapPoints(screenPts);
 
     mTransformMatrix = new Matrix();
-//    mTransformMatrix.setScale(scaleFactor, scaleFactor);
-//    mTransformMatrix.postTranslate(200, 200);
-//    mTransformMatrix.postTranslate(screenOffsetX, screenOffsetY);
 
 //    Log.d(TAG, "screen pts " + screenPts[0] + "  " + screenPts[1]);
-    Log.d(TAG, "screenOffsetX " + screenOffsetX + "  " + screenOffsetY);
+//    Log.d(TAG, "screenOffsetX " + screenOffsetX + "  " + screenOffsetY + "  " + scaleFactor);
     mTransformMatrix.setScale(scaleFactor, scaleFactor);
     mTransformMatrix.postTranslate(screenOffsetX, screenOffsetY);
     mPreviousTransform.set(mTransformMatrix);

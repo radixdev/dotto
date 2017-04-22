@@ -48,14 +48,16 @@ public class MainActivity extends AppCompatActivity  implements GestureDetector.
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
-    this.mDetector.onTouchEvent(event);
-    this.mScaleGestureDetector.onTouchEvent(event);
-    return super.onTouchEvent(event);
+    boolean handled = this.mScaleGestureDetector.onTouchEvent(event);
+//    if (!mScaleGestureDetector.isInProgress()) {
+      handled = this.mDetector.onTouchEvent(event);
+//    }
+    return handled;
   }
 
   @Override
   public boolean onDown(MotionEvent motionEvent) {
-      mUserGestureController.onUserTouch(new PointF(motionEvent.getX(), motionEvent.getY()));
+    mUserGestureController.onUserTouch(new PointF(motionEvent.getX(), motionEvent.getY()));
     return true;
   }
 
@@ -81,11 +83,19 @@ public class MainActivity extends AppCompatActivity  implements GestureDetector.
     return false;
   }
 
-  private class ScaleListener  extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+  private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+    float focusX, focusY;
+    @Override
+    public boolean onScaleBegin(ScaleGestureDetector detector) {
+      focusX = detector.getFocusX();
+      focusY = detector.getFocusY();
+      return true;
+    }
+
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-      mUserGestureController.onUserZoom(detector.getScaleFactor(), new PointF(detector.getFocusX(), detector.getFocusY()));
-      return false;
+      mUserGestureController.onUserZoom(detector.getScaleFactor(), new PointF(focusX, focusY));
+      return true;
     }
   }
 }

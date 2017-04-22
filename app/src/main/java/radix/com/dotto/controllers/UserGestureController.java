@@ -1,8 +1,7 @@
 package radix.com.dotto.controllers;
 
 import android.graphics.PointF;
-
-import radix.com.dotto.utils.NumberUtils;
+import android.util.Log;
 
 /**
  *
@@ -28,11 +27,11 @@ public class UserGestureController {
    * @param zoomCenterScreen where the user is zooming on screen
    */
   public void onUserZoom(float zoomFactor, PointF zoomCenterScreen) {
-    float oldZoom = mScaleFactor;
+    Log.d(TAG, "zoom f " + zoomFactor);
     mScaleFactor *= zoomFactor;
-    mScaleFactor = NumberUtils.clamp(mScaleFactor, 0.4f, 500f);
+//    mScaleFactor = NumberUtils.clamp(mScaleFactor, 0.4f, 500f);
 
-    float zoomRatio = mScaleFactor / oldZoom;
+    // see http://stackoverflow.com/a/13962157
     float sx = mScreenOffsetX;
     float sy = mScreenOffsetY;
     float fx = zoomCenterScreen.x;
