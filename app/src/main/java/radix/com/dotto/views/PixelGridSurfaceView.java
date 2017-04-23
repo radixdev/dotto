@@ -3,36 +3,46 @@ package radix.com.dotto.views;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.List;
 import java.util.Random;
 
 import radix.com.dotto.controllers.UserGestureController;
+import radix.com.dotto.controllers.UserTapInfo;
+import radix.com.dotto.models.IModelInterface;
 import radix.com.dotto.models.WorldMap;
 import radix.com.dotto.utils.FramerateUtils;
+import radix.com.dotto.utils.GameColor;
 
-public class PixelGridSurfaceView extends SurfaceView implements Runnable, SurfaceHolder.Callback {
+public class PixelGridSurfaceView extends SurfaceView implements IViewInterface, Runnable, SurfaceHolder.Callback {
   private static final String TAG = PixelGridSurfaceView.class.toString();
 
-  private final WorldMap mWorldMap;
-
-  private final SurfaceHolder mSurfaceHolder;
   private volatile boolean mIsGamePlaying;
   private Thread mGameThread = null;
 
   // The drawing properties
   private Bitmap mCanvasBitmap = null;
+  private final SurfaceHolder mSurfaceHolder;
+  private int screenWidth, screenHeight;
+
   private Canvas mBackingCanvas = null;
   private Matrix mTransformMatrix;
+  private final Paint mPixelPaint;
+
+  // Drawing the background
+  private Bitmap mBackgroundBitmap = null;
+  private Matrix mBackgroundTransform;
 
   // Controller interface
   private UserGestureController mUserGestureController;
+  private final IModelInterface mWorldMap;
 
   private Random random;
 
@@ -44,12 +54,13 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
     mSurfaceHolder = getHolder();
     mSurfaceHolder.addCallback(this);
     random = new Random();
+    mPixelPaint = new Paint();
   }
 
   @Override
   public void run() {
     while (mIsGamePlaying) {
-      draw();
+      executeDraw();
       controlFramerate();
     }
   }
@@ -63,47 +74,50 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
     }
   }
 
-  private void draw() {
+  private void executeDraw() {
     if (mSurfaceHolder.getSurface().isValid()) {
       Canvas canvas = mSurfaceHolder.lockCanvas();
+      drawBackground(canvas);
       this.draw(canvas);
       mSurfaceHolder.unlockCanvasAndPost(canvas);
     }
   }
 
-  Matrix mPreviousTransform = new Matrix();
+  private void drawBackground(Canvas canvas) {
+    canvas.drawBitmap(mBackgroundBitmap, mBackgroundTransform, null);
+  }
+
   @Override
   public void draw(Canvas canvas) {
     super.draw(canvas);
+    mPixelPaint.setColor(GameColor.getRandomColor());
+    for (int i = 0; i < 32; i++) {
+      mBackingCanvas.drawPoint(random.nextInt(1000), random.nextInt(1000), mPixelPaint);
+    }
 
-    final Paint pixelPaint = new Paint();
-    pixelPaint.setColor(Color.rgb(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
-    for (int i = 0; i < 8; i++) {
-      mBackingCanvas.drawPoint(random.nextInt(1000), random.nextInt(1000), pixelPaint);
+    // Pop from the model
+    List<UserTapInfo> taps = mWorldMap.getGridInfo(25);
+    for (UserTapInfo info : taps) {
+      mPixelPaint.setColor(info.getColor().getColor());
+      mBackingCanvas.drawPoint(info.getPointLocation().x, info.getPointLocation().y, mPixelPaint);
     }
 
     // TODO: 4/19/2017 scale where the gesture takes place
     float scaleFactor = mUserGestureController.getScaleFactor();
     int screenOffsetX = mUserGestureController.getScreenOffsetX();
     int screenOffsetY = mUserGestureController.getScreenOffsetY();
-    PointF zoomCenter = mUserGestureController.getLastZoomCenter();
-    zoomCenter = mUserGestureController.getLastTouch();
 
-    Matrix inverse = new Matrix();
-    mPreviousTransform.invert(inverse);
-    float[] screenPts = new float[]{zoomCenter.x, zoomCenter.y};
-    inverse.mapPoints(screenPts);
-
-    mTransformMatrix = new Matrix();
+//    mTransformMatrix = new Matrix();
+    mTransformMatrix.reset();
 
 //    Log.d(TAG, "screen pts " + screenPts[0] + "  " + screenPts[1]);
 //    Log.d(TAG, "screenOffsetX " + screenOffsetX + "  " + screenOffsetY + "  " + scaleFactor);
     mTransformMatrix.setScale(scaleFactor, scaleFactor);
     mTransformMatrix.postTranslate(screenOffsetX, screenOffsetY);
-    mPreviousTransform.set(mTransformMatrix);
     canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, null);
   }
 
+  @Override
   public void setPlaying(boolean playing) {
     Log.d(TAG, "Set playing to : " + playing);
     this.mIsGamePlaying = playing;
@@ -122,14 +136,15 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
 
   @Override
   public void surfaceCreated(SurfaceHolder surfaceHolder) {
-    int width = getWidth();
-    int height = getHeight();
-    mCanvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+    screenWidth = getWidth();
+    screenHeight = getHeight();
+    mCanvasBitmap = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
     mBackingCanvas = new Canvas();
     mBackingCanvas.setBitmap(mCanvasBitmap);
 
-//    mBackingCanvas.drawColor(Color.rgb(10, 10, 10));
     mTransformMatrix = new Matrix();
+
+    // Create the background variables
   }
 
   @Override
@@ -137,4 +152,34 @@ public class PixelGridSurfaceView extends SurfaceView implements Runnable, Surfa
 
   @Override
   public void surfaceDestroyed(SurfaceHolder surfaceHolder) {}
+
+  @Override
+  public Point convertScreenPointToLocalPoint(PointF screenCoordinate) {
+    Matrix inverse = new Matrix();
+    mTransformMatrix.invert(inverse);
+    float[] screenPts = new float[]{screenCoordinate.x, screenCoordinate.y};
+    inverse.mapPoints(screenPts);
+
+    return new Point((int) screenPts[0], (int) screenPts[1]);
+  }
+
+  private void createBackground(Canvas screenCanvas, int color, int screenWidth, int screenHeight) {
+    // Create a very large bitmap
+    int width = screenWidth * 2;
+    int height = screenHeight * 2;
+    Bitmap backgroundBitMap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+    // Make a new canvas for it
+    Canvas backgroundCanvas = new Canvas();
+    backgroundCanvas.setBitmap(backgroundBitMap);
+
+    // Draw the background to the canvas
+    backgroundCanvas.drawColor(color);
+
+    // transform it and write-back the changes to the actual canvas
+    Matrix transform = new Matrix();
+    transform.setScale(1, 1);
+    transform.postTranslate(0, 0);
+    screenCanvas.drawBitmap(backgroundBitMap, transform, null);
+  }
 }

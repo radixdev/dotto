@@ -1,7 +1,13 @@
 package radix.com.dotto.controllers;
 
+import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.util.Log;
+
+import radix.com.dotto.models.IModelInterface;
+import radix.com.dotto.models.WorldMap;
+import radix.com.dotto.utils.GameColor;
+import radix.com.dotto.views.IViewInterface;
 
 /**
  *
@@ -12,13 +18,22 @@ public class UserGestureController {
   private float mScaleFactor;
   private int mScreenOffsetX, mScreenOffsetY;
   private PointF mLastZoomCenter, mLastTouch;
+  private Matrix mViewTransform;
+  private final IModelInterface mWorldMap;
+  private IViewInterface mGameView;
 
-  public UserGestureController() {
+  public UserGestureController(WorldMap worldMap) {
     mScaleFactor = 1f;
     mScreenOffsetX = 0;
     mScreenOffsetY = 0;
     mLastZoomCenter = new PointF();
     mLastTouch = new PointF();
+    mViewTransform = new Matrix();
+    mWorldMap = worldMap;
+  }
+
+  public void setViewInterface(IViewInterface viewInterface) {
+    mGameView = viewInterface;
   }
 
   /**
@@ -27,9 +42,14 @@ public class UserGestureController {
    * @param zoomCenterScreen where the user is zooming on screen
    */
   public void onUserZoom(float zoomFactor, PointF zoomCenterScreen) {
-    Log.d(TAG, "zoom f " + zoomFactor);
+    Log.d(TAG, "zoom: " + mScaleFactor);
+    final double MIN_ZOOM = 1.1f;
+    if (mScaleFactor <= MIN_ZOOM && zoomFactor < 1f) {
+      // Don't allow for over zoom
+      // A zoom factor < 1 means a zoom out
+      return;
+    }
     mScaleFactor *= zoomFactor;
-//    mScaleFactor = NumberUtils.clamp(mScaleFactor, 0.4f, 500f);
 
     // see http://stackoverflow.com/a/13962157
     float sx = mScreenOffsetX;
@@ -50,6 +70,10 @@ public class UserGestureController {
 
   public void onUserTouch(PointF touch) {
     mLastTouch = touch;
+
+    // Pass the touch to the model
+    UserTapInfo info = new UserTapInfo(GameColor.BLUEISH, mGameView.convertScreenPointToLocalPoint(touch));
+    mWorldMap.onUserTapInfo(info);
   }
 
   public PointF getLastZoomCenter() {
@@ -58,6 +82,14 @@ public class UserGestureController {
 
   public PointF getLastTouch() {
     return mLastTouch;
+  }
+
+  /**
+   * Sets the current view transform for this controller
+   * @param viewTransform
+   */
+  public void setViewTransform(Matrix viewTransform) {
+    mViewTransform.set(viewTransform);
   }
 
   public float getScaleFactor() {

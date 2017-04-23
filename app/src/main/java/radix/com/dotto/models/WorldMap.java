@@ -1,8 +1,31 @@
 package radix.com.dotto.models;
 
-public class WorldMap {
+import java.util.ArrayList;
+import java.util.List;
 
-  public int getColorAtPoint(int x, int y) {
-    return 0;
+import radix.com.dotto.controllers.UserTapInfo;
+
+public class WorldMap implements IModelInterface {
+
+  private final List<UserTapInfo> mTapInfos;
+
+  public WorldMap() {
+    mTapInfos = new ArrayList<>();
+  }
+
+  @Override
+  public void onUserTapInfo(UserTapInfo info) {
+    mTapInfos.add(info);
+  }
+
+  @Override
+  public List<UserTapInfo> getGridInfo(int maxElements) {
+    List<UserTapInfo> result = new ArrayList<>();
+
+    // "It's time to pop off" - Obama
+    while (!mTapInfos.isEmpty() && result.size() < maxElements) {
+      result.add(mTapInfos.remove(0));
+    }
+    return result;
   }
 }

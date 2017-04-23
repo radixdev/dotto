@@ -1,6 +1,7 @@
 package radix.com.dotto;
 
 import android.graphics.PointF;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -12,12 +13,12 @@ import radix.com.dotto.controllers.UserGestureController;
 import radix.com.dotto.models.WorldMap;
 import radix.com.dotto.views.PixelGridSurfaceView;
 
-public class MainActivity extends AppCompatActivity  implements GestureDetector.OnGestureListener {
+public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.toString();
 
-  private PixelGridSurfaceView gameView;
+  private PixelGridSurfaceView mGameView;
   private WorldMap mWorldMap;
-  private GestureDetectorCompat mDetector;
+  private GestureDetectorCompat mGestureDetector;
   private ScaleGestureDetector mScaleGestureDetector;
   private UserGestureController mUserGestureController;
 
@@ -26,65 +27,64 @@ public class MainActivity extends AppCompatActivity  implements GestureDetector.
     super.onCreate(savedInstanceState);
 
     mWorldMap = new WorldMap();
-    mUserGestureController = new UserGestureController();
-    gameView = new PixelGridSurfaceView(this, mWorldMap, mUserGestureController);
-    setContentView(gameView);
+    mUserGestureController = new UserGestureController(mWorldMap);
+    mGameView = new PixelGridSurfaceView(this, mWorldMap, mUserGestureController);
+    mUserGestureController.setViewInterface(mGameView);
 
-    mDetector = new GestureDetectorCompat(this, this);
+    mGestureDetector = new GestureDetectorCompat(this, new GestureListener());
     mScaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      mScaleGestureDetector.setQuickScaleEnabled(false);
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      mScaleGestureDetector.setStylusScaleEnabled(false);
+    }
+    setContentView(mGameView);
   }
 
   @Override
   protected void onPause() {
     super.onPause();
-    gameView.setPlaying(false);
+    mGameView.setPlaying(false);
   }
 
   @Override
   protected void onResume() {
     super.onResume();
-    gameView.setPlaying(true);
+    mGameView.setPlaying(true);
   }
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
-    boolean handled = this.mScaleGestureDetector.onTouchEvent(event);
+    boolean scaleHandled = mScaleGestureDetector.onTouchEvent(event);
 //    if (!mScaleGestureDetector.isInProgress()) {
-      handled = this.mDetector.onTouchEvent(event);
+    boolean touchHandled = this.mGestureDetector.onTouchEvent(event);
 //    }
-    return handled;
+    return scaleHandled || touchHandled;
   }
 
-  @Override
-  public boolean onDown(MotionEvent motionEvent) {
-    mUserGestureController.onUserTouch(new PointF(motionEvent.getX(), motionEvent.getY()));
-    return true;
-  }
+  private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+      mUserGestureController.onUserScroll(distanceX, distanceY);
+      return true;
+    }
 
-  @Override
-  public void onShowPress(MotionEvent motionEvent) {}
+//    @Override
+//    public boolean onDown(MotionEvent motionEvent) {
+//      mUserGestureController.onUserTouch(new PointF(motionEvent.getX(), motionEvent.getY()));
+//      return true;
+//    }
 
-  @Override
-  public boolean onSingleTapUp(MotionEvent motionEvent) {
-    return false;
-  }
-
-  @Override
-  public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-    mUserGestureController.onUserScroll(distanceX, distanceY);
-    return false;
-  }
-
-  @Override
-  public void onLongPress(MotionEvent motionEvent) {}
-
-  @Override
-  public boolean onFling(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
-    return false;
+    @Override
+    public void onLongPress(MotionEvent motionEvent) {
+      mUserGestureController.onUserTouch(new PointF(motionEvent.getX(), motionEvent.getY()));
+    }
   }
 
   private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-    float focusX, focusY;
+    private float focusX, focusY;
+
     @Override
     public boolean onScaleBegin(ScaleGestureDetector detector) {
       focusX = detector.getFocusX();
