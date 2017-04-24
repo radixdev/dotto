@@ -13,16 +13,16 @@ public enum GameColor {
   RED(Color.rgb(229, 0, 0)),
   DARK_BLUE(Color.rgb(1, 1, 1)),
   DARK_PURPLE(Color.rgb(1, 1, 1)),
-  BLUEISH(Color.rgb(0, 131, 199)),
+  CHAMBRAY(Color.rgb(0, 131, 199)),
   BROWN(Color.rgb(160, 106, 66)),
   GOLD(Color.rgb(229, 149, 0)),
   LIGHT_GREY(Color.rgb(136, 136, 136)),
   LIGHT_BLUE(Color.rgb(0, 211, 221)),
   LIGHT_GREEN(Color.rgb(148, 224, 68)),
   YELLOW(Color.rgb(229, 217, 0)),
-  LIGHT_PURPLE(Color.rgb(207, 110, 228)),
+  MAGENTA(Color.rgb(207, 110, 228)),
   PINK(Color.rgb(255, 167, 209)),
-  WHO_EVEN_KNOWS(Color.rgb(228, 228, 220)),
+  SLATE(Color.rgb(228, 228, 220)),
   WHITE(Color.rgb(255, 255, 255));
 
   final int color;
