@@ -9,6 +9,10 @@ public class NumberUtils {
     return Math.max(min, Math.min(x, max));
   }
 
+  public static long clamp(long x, long min, long max) {
+    return Math.max(min, Math.min(x, max));
+  }
+
   public static float clamp(float x, float min, float max) {
     return Math.max(min, Math.min(x, max));
   }

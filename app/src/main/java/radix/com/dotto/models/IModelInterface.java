@@ -8,6 +8,10 @@ import radix.com.dotto.controllers.UserTapInfo;
  * Interface for interacting with the model
  */
 public interface IModelInterface {
+  int getWorldWidth();
+
+  int getWorldHeight();
+
   void onUserTapInfo(UserTapInfo info);
 
   /**

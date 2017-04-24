@@ -3,6 +3,7 @@ package radix.com.dotto.views;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
@@ -60,15 +61,22 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   @Override
   public void run() {
     while (mIsGamePlaying) {
+      long start = System.currentTimeMillis();
       executeDraw();
-      controlFramerate();
+      long end = System.currentTimeMillis();
+      controlFramerate(end - start);
+      Log.d(TAG, "frame took: " + (end - start));
     }
   }
 
-  private void controlFramerate() {
+  private void controlFramerate(long frameTime) {
     // Sleep a bit maybe
+    long sleepTime = FramerateUtils.getRefreshIntervalFromFramerate(20) - frameTime;
+    if (sleepTime <= 0) {
+      return;
+    }
     try {
-      Thread.sleep(FramerateUtils.getRefreshIntervalFromFramerate(100));
+      Thread.sleep(sleepTime);
     } catch (InterruptedException e) {
       Log.e(TAG, "Exception while sleeping in game loop", e);
     }
@@ -76,22 +84,32 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
   private void executeDraw() {
     if (mSurfaceHolder.getSurface().isValid()) {
-      Canvas canvas = mSurfaceHolder.lockCanvas();
-      drawBackground(canvas);
+//      Canvas canvas = mSurfaceHolder.lockCanvas();
+      Canvas canvas = mSurfaceHolder.getSurface().lockHardwareCanvas();
+
+      boolean HWA = canvas.isHardwareAccelerated();
+
       this.draw(canvas);
-      mSurfaceHolder.unlockCanvasAndPost(canvas);
+      mSurfaceHolder.getSurface().unlockCanvasAndPost(canvas);
     }
   }
 
   private void drawBackground(Canvas canvas) {
+    // transform it and write-back the changes to the actual canvas
+    mBackgroundTransform.setScale(screenWidth, screenHeight);
     canvas.drawBitmap(mBackgroundBitmap, mBackgroundTransform, null);
   }
 
   @Override
   public void draw(Canvas canvas) {
     super.draw(canvas);
+
+    drawBackground(canvas);
+
     mPixelPaint.setColor(GameColor.getRandomColor());
-    for (int i = 0; i < 32; i++) {
+    mPixelPaint.setAntiAlias(true);
+    mPixelPaint.setStyle(Paint.Style.STROKE);
+    for (int i = 0; i < 128; i++) {
       mBackingCanvas.drawPoint(random.nextInt(1000), random.nextInt(1000), mPixelPaint);
     }
 
@@ -107,11 +125,8 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     int screenOffsetX = mUserGestureController.getScreenOffsetX();
     int screenOffsetY = mUserGestureController.getScreenOffsetY();
 
-//    mTransformMatrix = new Matrix();
     mTransformMatrix.reset();
 
-//    Log.d(TAG, "screen pts " + screenPts[0] + "  " + screenPts[1]);
-//    Log.d(TAG, "screenOffsetX " + screenOffsetX + "  " + screenOffsetY + "  " + scaleFactor);
     mTransformMatrix.setScale(scaleFactor, scaleFactor);
     mTransformMatrix.postTranslate(screenOffsetX, screenOffsetY);
     canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, null);
@@ -138,13 +153,14 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   public void surfaceCreated(SurfaceHolder surfaceHolder) {
     screenWidth = getWidth();
     screenHeight = getHeight();
-    mCanvasBitmap = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
+    mCanvasBitmap = Bitmap.createBitmap(mWorldMap.getWorldWidth(), mWorldMap.getWorldHeight(), Bitmap.Config.ARGB_8888);
     mBackingCanvas = new Canvas();
     mBackingCanvas.setBitmap(mCanvasBitmap);
 
     mTransformMatrix = new Matrix();
 
     // Create the background variables
+    createBackground();
   }
 
   @Override
@@ -163,23 +179,20 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     return new Point((int) screenPts[0], (int) screenPts[1]);
   }
 
-  private void createBackground(Canvas screenCanvas, int color, int screenWidth, int screenHeight) {
+  private void createBackground() {
     // Create a very large bitmap
-    int width = screenWidth * 2;
-    int height = screenHeight * 2;
-    Bitmap backgroundBitMap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+    mBackgroundBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
 
     // Make a new canvas for it
     Canvas backgroundCanvas = new Canvas();
-    backgroundCanvas.setBitmap(backgroundBitMap);
+    backgroundCanvas.setBitmap(mBackgroundBitmap);
 
     // Draw the background to the canvas
-    backgroundCanvas.drawColor(color);
+    backgroundCanvas.drawColor(Color.rgb(220, 220, 220));
 
     // transform it and write-back the changes to the actual canvas
-    Matrix transform = new Matrix();
-    transform.setScale(1, 1);
-    transform.postTranslate(0, 0);
-    screenCanvas.drawBitmap(backgroundBitMap, transform, null);
+    mBackgroundTransform = new Matrix();
+//    mBackgroundTransform.setScale(1, 1);
+//    mBackgroundTransform.postTranslate(0, 0);
   }
 }

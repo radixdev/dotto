@@ -14,6 +14,16 @@ public class WorldMap implements IModelInterface {
   }
 
   @Override
+  public int getWorldWidth() {
+    return 1000;
+  }
+
+  @Override
+  public int getWorldHeight() {
+    return 1000;
+  }
+
+  @Override
   public void onUserTapInfo(UserTapInfo info) {
     mTapInfos.add(info);
   }
