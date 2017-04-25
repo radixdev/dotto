@@ -2,7 +2,7 @@ package radix.com.dotto.controllers;
 
 import android.graphics.Point;
 
-import radix.com.dotto.utils.GameColor;
+import radix.com.dotto.utils.enums.GameColor;
 
 /**
  * A class for parcelling info to the model from the controller

@@ -1,4 +1,4 @@
-package radix.com.dotto.utils;
+package radix.com.dotto.utils.framerate;
 
 public class FramerateUtils {
 

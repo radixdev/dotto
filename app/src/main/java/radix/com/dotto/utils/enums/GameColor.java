@@ -1,4 +1,4 @@
-package radix.com.dotto.utils;
+package radix.com.dotto.utils.enums;
 
 import android.graphics.Color;
 
@@ -44,8 +44,13 @@ public enum GameColor {
     return this.ordinal();
   }
 
+  private static final Random random = new Random();
+  private static final GameColor[] colors = GameColor.values();
   public static int getRandomColor() {
-    Random random = new Random();
-    return GameColor.values()[random.nextInt(GameColor.values().length)].getColor();
+    return colors[random.nextInt(colors.length)].getColor();
+  }
+
+  public static int getColorByCode(int code) {
+    return colors[code].getColor();
   }
 }

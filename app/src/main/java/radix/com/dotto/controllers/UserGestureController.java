@@ -5,7 +5,7 @@ import android.graphics.PointF;
 
 import radix.com.dotto.models.IModelInterface;
 import radix.com.dotto.models.WorldMap;
-import radix.com.dotto.utils.GameColor;
+import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.views.IViewInterface;
 
 /**
@@ -22,7 +22,7 @@ public class UserGestureController {
   private IViewInterface mGameView;
 
   public UserGestureController(WorldMap worldMap) {
-    mScaleFactor = 1f;
+    mScaleFactor = 20f;
     mScreenOffsetX = 0;
     mScreenOffsetY = 0;
     mLastZoomCenter = new PointF();

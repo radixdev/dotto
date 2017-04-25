@@ -1,5 +1,6 @@
 package radix.com.dotto.views;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -8,20 +9,21 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.os.Build;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.util.List;
-import java.util.Random;
 
 import radix.com.dotto.controllers.UserGestureController;
 import radix.com.dotto.controllers.UserTapInfo;
 import radix.com.dotto.models.IModelInterface;
 import radix.com.dotto.models.WorldMap;
-import radix.com.dotto.utils.FramerateUtils;
-import radix.com.dotto.utils.GameColor;
+import radix.com.dotto.utils.enums.GameColor;
+import radix.com.dotto.utils.framerate.FramerateUtils;
 
+@SuppressLint("ViewConstructor")
 public class PixelGridSurfaceView extends SurfaceView implements IViewInterface, Runnable, SurfaceHolder.Callback {
   private static final String TAG = PixelGridSurfaceView.class.toString();
 
@@ -45,8 +47,6 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   private UserGestureController mUserGestureController;
   private final IModelInterface mWorldMap;
 
-  private Random random;
-
   public PixelGridSurfaceView(Context context, WorldMap map, UserGestureController userGestureController) {
     super(context);
     this.mUserGestureController = userGestureController;
@@ -54,7 +54,6 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
     mSurfaceHolder = getHolder();
     mSurfaceHolder.addCallback(this);
-    random = new Random();
     mPixelPaint = new Paint();
   }
 
@@ -65,13 +64,12 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
       executeDraw();
       long end = System.currentTimeMillis();
       controlFramerate(end - start);
-      Log.d(TAG, "frame took: " + (end - start));
     }
   }
 
   private void controlFramerate(long frameTime) {
     // Sleep a bit maybe
-    long sleepTime = FramerateUtils.getRefreshIntervalFromFramerate(20) - frameTime;
+    long sleepTime = FramerateUtils.getRefreshIntervalFromFramerate(60) - frameTime;
     if (sleepTime <= 0) {
       return;
     }
@@ -82,35 +80,54 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     }
   }
 
+  @SuppressLint("NewApi")
   private void executeDraw() {
-    if (mSurfaceHolder.getSurface().isValid()) {
-//      Canvas canvas = mSurfaceHolder.lockCanvas();
-      Canvas canvas = mSurfaceHolder.getSurface().lockHardwareCanvas();
+    boolean useSW = Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
+    if (!mSurfaceHolder.getSurface().isValid()) {
+      return;
+    }
 
-      boolean HWA = canvas.isHardwareAccelerated();
+    Canvas canvas;
+    if (useSW) {
+      canvas = mSurfaceHolder.lockCanvas();
+    } else {
+      canvas = mSurfaceHolder.getSurface().lockHardwareCanvas();
+    }
 
-      this.draw(canvas);
+    // Draw to the canvas
+    this.draw(canvas);
+
+    if (useSW) {
+      mSurfaceHolder.unlockCanvasAndPost(canvas);
+    } else {
       mSurfaceHolder.getSurface().unlockCanvasAndPost(canvas);
     }
   }
 
   private void drawBackground(Canvas canvas) {
-    // transform it and write-back the changes to the actual canvas
-    mBackgroundTransform.setScale(screenWidth, screenHeight);
     canvas.drawBitmap(mBackgroundBitmap, mBackgroundTransform, null);
   }
 
+  private void drawDebugHud(Canvas canvas) {
+    canvas.drawBitmap(mDebugHudBitmap, mDebugHudTransform, null);
+  }
+
+  int where = 0;
   @Override
   public void draw(Canvas canvas) {
     super.draw(canvas);
 
     drawBackground(canvas);
 
-    mPixelPaint.setColor(GameColor.getRandomColor());
-    mPixelPaint.setAntiAlias(true);
-    mPixelPaint.setStyle(Paint.Style.STROKE);
-    for (int i = 0; i < 128; i++) {
-      mBackingCanvas.drawPoint(random.nextInt(1000), random.nextInt(1000), mPixelPaint);
+//    mPixelPaint.setColor(GameColor.getRandomColor());
+//    for (int i = 0; i < 128; i++) {
+//      mBackingCanvas.drawPoint(random.nextInt(1000), random.nextInt(1000), mPixelPaint);
+//    }
+
+    for (int i = 0; i < 64; i++) {
+      mPixelPaint.setColor(GameColor.getRandomColor());
+      mBackingCanvas.drawPoint(where % 1000, (where / 1000) % 1000, mPixelPaint);
+      where++;
     }
 
     // Pop from the model
@@ -120,16 +137,18 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
       mBackingCanvas.drawPoint(info.getPointLocation().x, info.getPointLocation().y, mPixelPaint);
     }
 
-    // TODO: 4/19/2017 scale where the gesture takes place
     float scaleFactor = mUserGestureController.getScaleFactor();
     int screenOffsetX = mUserGestureController.getScreenOffsetX();
     int screenOffsetY = mUserGestureController.getScreenOffsetY();
 
     mTransformMatrix.reset();
-
     mTransformMatrix.setScale(scaleFactor, scaleFactor);
     mTransformMatrix.postTranslate(screenOffsetX, screenOffsetY);
-    canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, null);
+
+    // HW canvases need a paint here for some reason
+    canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, mPixelPaint);
+
+    drawDebugHud(canvas);
   }
 
   @Override
@@ -161,6 +180,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
     // Create the background variables
     createBackground();
+    createDebugHUD();
   }
 
   @Override
@@ -192,7 +212,23 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
     // transform it and write-back the changes to the actual canvas
     mBackgroundTransform = new Matrix();
-//    mBackgroundTransform.setScale(1, 1);
-//    mBackgroundTransform.postTranslate(0, 0);
+    mBackgroundTransform.setScale(screenWidth, screenHeight);
+  }
+
+  private Bitmap mDebugHudBitmap;
+  private Matrix mDebugHudTransform;
+  private void createDebugHUD() {
+    mDebugHudBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+
+    // Make a new canvas for it
+    Canvas canvas = new Canvas();
+    canvas.setBitmap(mDebugHudBitmap);
+
+    // Draw the background to the canvas
+    canvas.drawColor(Color.BLACK);
+
+    // transform it and write-back the changes to the actual canvas
+    mDebugHudTransform = new Matrix();
+    mDebugHudTransform.setScale(20, 100);
   }
 }
