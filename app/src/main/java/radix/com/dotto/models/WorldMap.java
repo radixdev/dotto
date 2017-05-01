@@ -13,6 +13,13 @@ public class WorldMap implements IModelInterface {
   public WorldMap() {
     mTapInfos = new ArrayList<>();
     result = new ArrayList<>();
+
+//    FirebaseDatabase database = FirebaseDatabase.getInstance();
+//    DatabaseReference myRef = database.getReference("message");
+//    myRef.keepSynced(true);
+//
+//    myRef.addValueEventListener()
+//    final Map<String, String> timestamp = ServerValue.TIMESTAMP;
   }
 
   @Override
