@@ -41,7 +41,6 @@ public class UserGestureController {
    * @param zoomCenterScreen where the user is zooming on screen
    */
   public void onUserZoom(float zoomFactor, PointF zoomCenterScreen) {
-//    Log.d(TAG, "zoom: " + mScaleFactor);
     final double MIN_ZOOM = 1.1f;
     if (mScaleFactor <= MIN_ZOOM && zoomFactor < 1f) {
       // Don't allow for over zoom
@@ -71,8 +70,8 @@ public class UserGestureController {
     mLastTouch = touch;
 
     // Pass the touch to the model
-    UserTapInfo info = new UserTapInfo(GameColor.CHAMBRAY, mGameView.convertScreenPointToLocalPoint(touch));
-    mWorldMap.onUserTapInfo(info);
+    PixelInfo info = new PixelInfo(GameColor.CHAMBRAY, mGameView.convertScreenPointToLocalPoint(touch));
+    mWorldMap.onPixelInfoChange(info);
   }
 
   public PointF getLastZoomCenter() {

@@ -17,7 +17,7 @@ import android.view.SurfaceView;
 import java.util.List;
 
 import radix.com.dotto.controllers.UserGestureController;
-import radix.com.dotto.controllers.UserTapInfo;
+import radix.com.dotto.controllers.PixelInfo;
 import radix.com.dotto.models.IModelInterface;
 import radix.com.dotto.models.WorldMap;
 import radix.com.dotto.utils.enums.GameColor;
@@ -108,9 +108,9 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     canvas.drawBitmap(mBackgroundBitmap, mBackgroundTransform, null);
   }
 
-  private void drawDebugHud(Canvas canvas) {
-    canvas.drawBitmap(mDebugHudBitmap, mDebugHudTransform, null);
-  }
+//  private void drawDebugHud(Canvas canvas) {
+//    canvas.drawBitmap(mDebugHudBitmap, mDebugHudTransform, null);
+//  }
 
   int where = 0;
   @Override
@@ -124,17 +124,18 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 //      mBackingCanvas.drawPoint(random.nextInt(1000), random.nextInt(1000), mPixelPaint);
 //    }
 
-    for (int i = 0; i < 64; i++) {
+    final int size = 20;
+    for (int i = 0; i < 1; i++) {
       mPixelPaint.setColor(GameColor.getRandomColor());
-      mBackingCanvas.drawPoint(where % 1000, (where / 1000) % 1000, mPixelPaint);
+      mBackingCanvas.drawPoint(where % size, (where / size) % size, mPixelPaint);
       where++;
     }
 
     // Pop from the model
-    List<UserTapInfo> taps = mWorldMap.getGridInfo(25);
-    for (UserTapInfo info : taps) {
+    List<PixelInfo> taps = mWorldMap.getGridInfo(25);
+    for (PixelInfo info : taps) {
       mPixelPaint.setColor(info.getColor().getColor());
-      mBackingCanvas.drawPoint(info.getPointLocation().x, info.getPointLocation().y, mPixelPaint);
+      mBackingCanvas.drawPoint(info.getPointX(), info.getPointY(), mPixelPaint);
     }
 
     float scaleFactor = mUserGestureController.getScaleFactor();
@@ -148,7 +149,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     // HW canvases need a paint here for some reason
     canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, mPixelPaint);
 
-    drawDebugHud(canvas);
+//    drawDebugHud(canvas);
   }
 
   @Override

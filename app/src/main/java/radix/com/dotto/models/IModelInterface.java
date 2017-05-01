@@ -2,7 +2,7 @@ package radix.com.dotto.models;
 
 import java.util.List;
 
-import radix.com.dotto.controllers.UserTapInfo;
+import radix.com.dotto.controllers.PixelInfo;
 
 /**
  * Interface for interacting with the model
@@ -12,7 +12,7 @@ public interface IModelInterface {
 
   int getWorldHeight();
 
-  void onUserTapInfo(UserTapInfo info);
+  void onPixelInfoChange(PixelInfo info);
 
   /**
    * Gets a list of elements for the view to render.
@@ -20,5 +20,5 @@ public interface IModelInterface {
    * @param maxElements
    * @return
    */
-  List<UserTapInfo> getGridInfo(int maxElements);
+  List<PixelInfo> getGridInfo(int maxElements);
 }

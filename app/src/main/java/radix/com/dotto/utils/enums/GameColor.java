@@ -25,7 +25,10 @@ public enum GameColor {
   SLATE(Color.rgb(228, 228, 220)),
   WHITE(Color.rgb(255, 255, 255));
 
-  final int color;
+  private final int color;
+  private static final Random random = new Random();
+  private static final GameColor[] colors = GameColor.values();
+
   GameColor(int color) {
     this.color = color;
   }
@@ -44,13 +47,14 @@ public enum GameColor {
     return this.ordinal();
   }
 
-  private static final Random random = new Random();
-  private static final GameColor[] colors = GameColor.values();
   public static int getRandomColor() {
     return colors[random.nextInt(colors.length)].getColor();
   }
 
-  public static int getColorByCode(int code) {
-    return colors[code].getColor();
+  public static GameColor getGameColorByCode(int code) {
+    if (code > colors.length) {
+      return WHITE;
+    }
+    return colors[code];
   }
 }
