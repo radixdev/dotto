@@ -29,6 +29,16 @@ public enum GameColor {
   private static final Random random = new Random();
   private static final GameColor[] colors = GameColor.values();
 
+  /**
+   * Color/int array of all possible game colors
+   */
+  public static final int[] ALL_COLOR_VALUES = new int[GameColor.values().length];
+  static {
+    for (int i = 0; i < colors.length; i++) {
+      ALL_COLOR_VALUES[i] = colors[i].getColor();
+    }
+  }
+
   GameColor(int color) {
     this.color = color;
   }

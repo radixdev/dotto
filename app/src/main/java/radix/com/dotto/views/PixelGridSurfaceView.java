@@ -52,6 +52,14 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     super(context, attrs);
   }
 
+  public PixelGridSurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
+    super(context, attrs, defStyleAttr);
+  }
+
+  public PixelGridSurfaceView(Context context) {
+    super(context);
+  }
+
   public void setModelAndController(WorldMap map, UserGestureController userGestureController) {
     this.mUserGestureController = userGestureController;
     mWorldMap = map;

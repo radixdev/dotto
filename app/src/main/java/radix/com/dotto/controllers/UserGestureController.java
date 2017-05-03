@@ -15,17 +15,16 @@ public class UserGestureController {
 
   private float mScaleFactor;
   private int mScreenOffsetX, mScreenOffsetY;
-  private PointF mLastZoomCenter, mLastTouch;
   private final IModelInterface mWorldMap;
   private IViewInterface mGameView;
+  private GameColor mColorChoice;
 
   public UserGestureController(WorldMap worldMap) {
     mScaleFactor = 20f;
     mScreenOffsetX = 0;
     mScreenOffsetY = 0;
-    mLastZoomCenter = new PointF();
-    mLastTouch = new PointF();
     mWorldMap = worldMap;
+    mColorChoice = GameColor.CHAMBRAY;
   }
 
   public void setViewInterface(IViewInterface viewInterface) {
@@ -54,8 +53,6 @@ public class UserGestureController {
 
     mScreenOffsetX -= (int) ((sx - fx) * (1 - zoomFactor));
     mScreenOffsetY -= (int) ((sy - fy) * (1 - zoomFactor));
-
-    mLastZoomCenter = zoomCenterScreen;
   }
 
   public void onUserScroll(float scrollDistanceX, float scrollDistanceY) {
@@ -64,19 +61,17 @@ public class UserGestureController {
   }
 
   public void onUserTouch(PointF touch) {
-    mLastTouch = touch;
-
     // Pass the touch to the model
-    PixelInfo info = new PixelInfo(GameColor.CHAMBRAY, mGameView.convertScreenPointToLocalPoint(touch));
+    PixelInfo info = new PixelInfo(mColorChoice, mGameView.convertScreenPointToLocalPoint(touch));
     mWorldMap.onPixelInfoChange(info);
   }
 
-  public PointF getLastZoomCenter() {
-    return mLastZoomCenter;
+  public void setUserColorChoice(GameColor colorChoice) {
+    mColorChoice = colorChoice;
   }
 
-  public PointF getLastTouch() {
-    return mLastTouch;
+  public GameColor getColorChoice() {
+    return mColorChoice;
   }
 
   public float getScaleFactor() {
