@@ -1,6 +1,5 @@
 package radix.com.dotto.controllers;
 
-import android.graphics.Matrix;
 import android.graphics.PointF;
 
 import radix.com.dotto.models.IModelInterface;
@@ -17,7 +16,6 @@ public class UserGestureController {
   private float mScaleFactor;
   private int mScreenOffsetX, mScreenOffsetY;
   private PointF mLastZoomCenter, mLastTouch;
-  private Matrix mViewTransform;
   private final IModelInterface mWorldMap;
   private IViewInterface mGameView;
 
@@ -27,7 +25,6 @@ public class UserGestureController {
     mScreenOffsetY = 0;
     mLastZoomCenter = new PointF();
     mLastTouch = new PointF();
-    mViewTransform = new Matrix();
     mWorldMap = worldMap;
   }
 
@@ -80,14 +77,6 @@ public class UserGestureController {
 
   public PointF getLastTouch() {
     return mLastTouch;
-  }
-
-  /**
-   * Sets the current view transform for this controller
-   * @param viewTransform
-   */
-  public void setViewTransform(Matrix viewTransform) {
-    mViewTransform.set(viewTransform);
   }
 
   public float getScaleFactor() {

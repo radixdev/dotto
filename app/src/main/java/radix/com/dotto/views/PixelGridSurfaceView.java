@@ -10,6 +10,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.os.Build;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -32,12 +33,12 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
   // The drawing properties
   private Bitmap mCanvasBitmap = null;
-  private final SurfaceHolder mSurfaceHolder;
+  private SurfaceHolder mSurfaceHolder;
   private int screenWidth, screenHeight;
 
   private Canvas mBackingCanvas = null;
   private Matrix mTransformMatrix;
-  private final Paint mPixelPaint;
+  private Paint mPixelPaint;
 
   // Drawing the background
   private Bitmap mBackgroundBitmap = null;
@@ -45,10 +46,13 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
   // Controller interface
   private UserGestureController mUserGestureController;
-  private final IModelInterface mWorldMap;
+  private IModelInterface mWorldMap;
 
-  public PixelGridSurfaceView(Context context, WorldMap map, UserGestureController userGestureController) {
-    super(context);
+  public PixelGridSurfaceView(Context context, AttributeSet attrs) {
+    super(context, attrs);
+  }
+
+  public void setModelAndController(WorldMap map, UserGestureController userGestureController) {
     this.mUserGestureController = userGestureController;
     mWorldMap = map;
 
@@ -124,10 +128,11 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 //      mBackingCanvas.drawPoint(random.nextInt(1000), random.nextInt(1000), mPixelPaint);
 //    }
 
-    final int size = 20;
+    final int size = 1000;
     for (int i = 0; i < 1; i++) {
       mPixelPaint.setColor(GameColor.getRandomColor());
-      mBackingCanvas.drawPoint(where % size, (where / size) % size, mPixelPaint);
+      mBackingCanvas.drawPoint(where % size, 0, mPixelPaint);
+      mBackingCanvas.drawPoint(0, where % size, mPixelPaint);
       where++;
     }
 
@@ -185,10 +190,14 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   }
 
   @Override
-  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {}
+  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int newWidth, int newHeight) {
+    Log.d(TAG, "surfaceChanged called");
+  }
 
   @Override
-  public void surfaceDestroyed(SurfaceHolder surfaceHolder) {}
+  public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+    Log.d(TAG, "surfaceDestroyed called");
+  }
 
   @Override
   public Point convertScreenPointToLocalPoint(PointF screenCoordinate) {

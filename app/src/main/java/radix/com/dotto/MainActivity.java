@@ -33,9 +33,11 @@ public class MainActivity extends AppCompatActivity {
         WindowManager.LayoutParams.FLAG_FULLSCREEN,
         WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+    setContentView(R.layout.activity_main);
     mWorldMap = new WorldMap();
     mUserGestureController = new UserGestureController(mWorldMap);
-    mGameView = new PixelGridSurfaceView(this, mWorldMap, mUserGestureController);
+    mGameView = (PixelGridSurfaceView) findViewById(R.id.gameView);
+    mGameView.setModelAndController(mWorldMap, mUserGestureController);
     mUserGestureController.setViewInterface(mGameView);
 
     mGestureDetector = new GestureDetectorCompat(this, new GestureListener());
@@ -46,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       mScaleGestureDetector.setStylusScaleEnabled(false);
     }
-    setContentView(mGameView);
+//    setContentView(mGameView);
   }
 
   @Override
