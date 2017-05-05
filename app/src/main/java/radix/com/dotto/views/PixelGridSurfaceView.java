@@ -145,10 +145,12 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     }
 
     // Pop from the model
-    List<PixelInfo> taps = mWorldMap.getGridInfo(25);
-    for (PixelInfo info : taps) {
-      mPixelPaint.setColor(info.getColor().getColor());
-      mBackingCanvas.drawPoint(info.getPointX(), info.getPointY(), mPixelPaint);
+    if (mWorldMap.hasGridInfo()) {
+      List<PixelInfo> taps = mWorldMap.getGridInfo(1000);
+      for (PixelInfo info : taps) {
+        mPixelPaint.setColor(info.getColor().getColor());
+        mBackingCanvas.drawPoint(info.getPointX(), info.getPointY(), mPixelPaint);
+      }
     }
 
     float scaleFactor = mUserGestureController.getScaleFactor();

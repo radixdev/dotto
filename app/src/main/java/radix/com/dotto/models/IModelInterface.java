@@ -21,4 +21,6 @@ public interface IModelInterface {
    * @return
    */
   List<PixelInfo> getGridInfo(int maxElements);
+
+  boolean hasGridInfo();
 }

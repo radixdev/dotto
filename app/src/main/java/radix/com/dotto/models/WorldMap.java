@@ -9,19 +9,21 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import radix.com.dotto.controllers.PixelInfo;
 
 public class WorldMap implements IModelInterface {
   private final String TAG = WorldMap.class.toString();
   private final List<PixelInfo> mPixelData;
-  private List<PixelInfo> result = new ArrayList<>();
+  private final List<PixelInfo> mReturnedPixelData;
   private DatabaseReference mPixelPathReference;
 
   public WorldMap() {
-    mPixelData = new ArrayList<>();
-    result = new ArrayList<>();
+    mPixelData = new CopyOnWriteArrayList<>();
+    mReturnedPixelData = new ArrayList<>();
 
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     mPixelPathReference = database.getReference(ProtocolConstants.PIXEL_PATH);
@@ -31,9 +33,15 @@ public class WorldMap implements IModelInterface {
 
   @Override
   public void onPixelInfoChange(PixelInfo info) {
+    // verify the info is correct
+    if (info.getPointX() < 0 || info.getPointX() > getWorldWidth() || info.getPointY() < 0 || info.getPointY() > getWorldHeight()) {
+      Log.d(TAG, "Tried to draw out of bounds: " + info);
+      return;
+    }
+
+    Log.d(TAG, "Adding info at: " + info);
     // turn the x,y into a key
     String key = ProtocolHandler.getKeyFromCoordinates(info.getPointX(), info.getPointY());
-
     mPixelPathReference.child(key).setValue(info.getColor().getCode());
   }
 
@@ -43,13 +51,17 @@ public class WorldMap implements IModelInterface {
    */
   @Override
   public List<PixelInfo> getGridInfo(int maxElements) {
-    result.clear();
+    Log.d(TAG, "Got pixels: " + mPixelData.size());
+    mReturnedPixelData.clear();
 
-    // "It's time to pop off" - Obama
-    while (!mPixelData.isEmpty() && result.size() < maxElements) {
-      result.add(mPixelData.remove(0));
+    List<PixelInfo> pixelList = Collections.synchronizedList(mPixelData);
+    synchronized (pixelList) {
+      // "It's time to pop off" - Obama
+      while (!pixelList.isEmpty() && mReturnedPixelData.size() < maxElements) {
+        mReturnedPixelData.add(pixelList.remove(0));
+      }
     }
-    return result;
+    return mReturnedPixelData;
   }
 
   private void addPixelInfo(DataSnapshot dataSnapshot) {
@@ -57,8 +69,11 @@ public class WorldMap implements IModelInterface {
     int colorCode = (int) (long) dataSnapshot.getValue();
 
     PixelInfo info = ProtocolHandler.getPixelInfoFromData(key, colorCode);
-    Log.v(TAG, "Got pixel info from firebase: " + info);
-    mPixelData.add(info);
+
+    List<PixelInfo> infoList = Collections.synchronizedList(mPixelData);
+    synchronized (infoList) {
+      infoList.add(info);
+    }
   }
 
   /**
@@ -69,13 +84,13 @@ public class WorldMap implements IModelInterface {
 
     @Override
     public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-      Log.v(TAG, "onChildChanged called " + dataSnapshot);
+//      Log.v(TAG, "onChildChanged called " + dataSnapshot);
       addPixelInfo(dataSnapshot);
     }
 
     @Override
     public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-      Log.v(TAG, "onChildAdded called " + dataSnapshot);
+//      Log.v(TAG, "onChildAdded called " + dataSnapshot);
       addPixelInfo(dataSnapshot);
     }
 
@@ -103,5 +118,10 @@ public class WorldMap implements IModelInterface {
   @Override
   public int getWorldHeight() {
     return 1000;
+  }
+
+  @Override
+  public boolean hasGridInfo() {
+    return !mPixelData.isEmpty();
   }
 }
