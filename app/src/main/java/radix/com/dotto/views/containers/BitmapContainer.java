@@ -3,6 +3,7 @@ package radix.com.dotto.views.containers;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 
 /**
  * Holder for a canvas-backed bitmap and view matrix
@@ -11,9 +12,10 @@ public class BitmapContainer {
   private final Bitmap mBitmap;
   private final Matrix mViewTransform;
   private final Canvas mCanvas;
+  private final Paint mPaint;
 
   public BitmapContainer(int bitmapWidth, int bitmapHeight, int transformInitialScaleX, int transformInitialScaleY,
-                         int initialBgColor) {
+                         Integer initialBgColor) {
     this.mBitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
     this.mViewTransform = new Matrix();
 
@@ -21,12 +23,13 @@ public class BitmapContainer {
     mCanvas = new Canvas();
     mCanvas.setBitmap(mBitmap);
 
-    if (initialBgColor != -1) {
+    if (initialBgColor != null) {
       mCanvas.drawColor(initialBgColor);
     }
 
     // apply our transforms
     mViewTransform.setScale(transformInitialScaleX, transformInitialScaleY);
+    mPaint = new Paint();
   }
 
   /**
@@ -38,6 +41,10 @@ public class BitmapContainer {
 
   public Bitmap getBitmap() {
     return mBitmap;
+  }
+
+  public Paint getPaint() {
+    return mPaint;
   }
 
   public Canvas getCanvas() {

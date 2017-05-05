@@ -5,7 +5,7 @@ public class BitmapContainerBuilder {
   private int bitmapHeight = 1;
   private int transformInitialScaleX;
   private int transformInitialScaleY;
-  private int initialBgColor = -1;
+  private Integer initialBgColor = null;
 
   public BitmapContainerBuilder setBitmapWidth(int bitmapWidth, int bitmapHeight) {
     this.bitmapWidth = bitmapWidth;

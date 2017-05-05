@@ -9,6 +9,8 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -122,6 +124,21 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     canvas.drawBitmap(mBackgroundContainer.getBitmap(), mBackgroundContainer.getViewTransform(), null);
   }
 
+  private void drawCenterOfScreenHUD(Canvas drawContextCanvas) {
+    // Re-draw the canvas then apply the text
+    Canvas containerCanvas = mCenterOfScreenContainer.getCanvas();
+    containerCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+    containerCanvas.drawColor(Color.argb(25, 255, 255, 255));
+
+    final Paint paint = mCenterOfScreenContainer.getPaint();
+
+    Point centerPoint = convertScreenPointToLocalPoint(new PointF(mScreenWidth / 2, mScreenHeight / 2));
+    final String hudText = String.format("(%s, %s)", centerPoint.x, centerPoint.y);
+    containerCanvas.drawText(hudText, 150, hudHeight - 5, paint);
+
+    drawContextCanvas.drawBitmap(mCenterOfScreenContainer.getBitmap(), mCenterOfScreenContainer.getViewTransform(), paint);
+  }
+
   int where = 0;
 
   @Override
@@ -157,7 +174,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     // HW canvases need a paint here for some reason
     canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, mPixelPaint);
 
-    // draw the grid
+    drawCenterOfScreenHUD(canvas);
   }
 
   /**
@@ -192,11 +209,26 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
         .setInitialBgColor(Color.rgb(220, 220, 220))
         .build();
 
+    createCenterOfScreenHud();
+  }
+
+  int hudHeight;
+  private void createCenterOfScreenHud() {
+    hudHeight = 50;
     mCenterOfScreenContainer = new BitmapContainerBuilder()
-        .setBitmapWidth(200, 20)
-        .setTransformInitialScale(mScreenWidth, mScreenHeight)
-        .setInitialBgColor(Color.rgb(220, 220, 220))
+        .setBitmapWidth(300, hudHeight)
         .build();
+
+    // de-offset this to the screen bottom left
+    Matrix matrix = mCenterOfScreenContainer.getViewTransform();
+    matrix.setTranslate(0, mScreenHeight - hudHeight);
+
+    final Paint paint = mCenterOfScreenContainer.getPaint();
+    paint.setTextAlign(Paint.Align.CENTER);
+    paint.setColor(Color.BLACK);
+    paint.setTypeface(Typeface.SERIF);
+    paint.setTextSize(50f);
+    paint.setAntiAlias(true);
   }
 
   @Override
