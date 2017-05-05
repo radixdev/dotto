@@ -14,7 +14,7 @@ public class UserGestureController {
   private static final String TAG = UserGestureController.class.toString();
 
   private float mScaleFactor;
-  private int mScreenOffsetX, mScreenOffsetY;
+  private float mScreenOffsetX, mScreenOffsetY;
   private final IModelInterface mWorldMap;
   private IViewInterface mGameView;
   private GameColor mColorChoice;
@@ -51,8 +51,8 @@ public class UserGestureController {
     float fx = zoomCenterScreen.x;
     float fy = zoomCenterScreen.y;
 
-    mScreenOffsetX -= (int) ((sx - fx) * (1 - zoomFactor));
-    mScreenOffsetY -= (int) ((sy - fy) * (1 - zoomFactor));
+    mScreenOffsetX -= (sx - fx) * (1 - zoomFactor);
+    mScreenOffsetY -= (sy - fy) * (1 - zoomFactor);
   }
 
   public void onUserScroll(float scrollDistanceX, float scrollDistanceY) {
@@ -78,11 +78,11 @@ public class UserGestureController {
     return mScaleFactor;
   }
 
-  public int getScreenOffsetX() {
+  public float getScreenOffsetX() {
     return mScreenOffsetX;
   }
 
-  public int getScreenOffsetY() {
+  public float getScreenOffsetY() {
     return mScreenOffsetY;
   }
 }
