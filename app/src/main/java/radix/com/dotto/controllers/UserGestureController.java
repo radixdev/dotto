@@ -1,6 +1,8 @@
 package radix.com.dotto.controllers;
 
+import android.graphics.Point;
 import android.graphics.PointF;
+import android.util.Log;
 
 import radix.com.dotto.models.IModelInterface;
 import radix.com.dotto.models.WorldMap;
@@ -19,12 +21,19 @@ public class UserGestureController {
   private IViewInterface mGameView;
   private GameColor mColorChoice;
 
+  // Controller state
+  private ControllerState mControllerState = ControllerState.PANNING;
+  private PixelInfo mUserFocusInfoLocation;
+
   public UserGestureController(WorldMap worldMap) {
     mScaleFactor = 20f;
     mScreenOffsetX = 0;
     mScreenOffsetY = 0;
     mWorldMap = worldMap;
     mColorChoice = GameColor.CHAMBRAY;
+
+    // TODO: 5/6/2017 test line. Remove this
+    mUserFocusInfoLocation = new PixelInfo(GameColor.DARK_GREEN, 100, 100);
   }
 
   public void setViewInterface(IViewInterface viewInterface) {
@@ -37,6 +46,8 @@ public class UserGestureController {
    * @param zoomCenterScreen where the user is zooming on screen
    */
   public void onUserZoom(float zoomFactor, PointF zoomCenterScreen) {
+    changeControllerState(ControllerState.PANNING);
+
     final double MIN_ZOOM = 1.1f;
     if (mScaleFactor <= MIN_ZOOM && zoomFactor < 1f) {
       // Don't allow for over zoom
@@ -56,11 +67,22 @@ public class UserGestureController {
   }
 
   public void onUserScroll(float scrollDistanceX, float scrollDistanceY) {
+    changeControllerState(ControllerState.PANNING);
     mScreenOffsetX -= scrollDistanceX*1;
     mScreenOffsetY -= scrollDistanceY*1;
   }
 
-  public void onUserTouch(PointF touch) {
+  public void onUserSingleTap(PointF touch) {
+    changeControllerState(ControllerState.TEST_TAP);
+
+    // This process of screen -> local -> screen effectively "snaps" to the center of a dot on screen
+    Point localPoint = mGameView.convertScreenPointToLocalPoint(touch);
+    Point screenPoint = mGameView.convertLocalPointToScreenPoint(localPoint);
+    mUserFocusInfoLocation = new PixelInfo(mColorChoice, new Point(screenPoint.x, screenPoint.y));
+  }
+
+  public void onUserLongTap(PointF touch) {
+    changeControllerState(ControllerState.PANNING);
     // Pass the touch to the model
     PixelInfo info = new PixelInfo(mColorChoice, mGameView.convertScreenPointToLocalPoint(touch));
     mWorldMap.onPixelInfoChange(info);
@@ -84,5 +106,22 @@ public class UserGestureController {
 
   public float getScreenOffsetY() {
     return mScreenOffsetY;
+  }
+
+  public PixelInfo getUserFocusInfo() {
+    return mUserFocusInfoLocation;
+  }
+
+  private void changeControllerState(ControllerState newState) {
+    if (mControllerState == newState) {
+//      Log.d(TAG, "Got call to cycle state from " + newState);
+      return;
+    }
+    Log.d(TAG, "Changing state from " + mControllerState + " to " + newState);
+    mControllerState = newState;
+  }
+
+  public ControllerState getControllerState() {
+    return mControllerState;
   }
 }

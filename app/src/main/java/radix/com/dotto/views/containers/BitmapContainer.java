@@ -14,8 +14,12 @@ public class BitmapContainer {
   private final Canvas mCanvas;
   private final Paint mPaint;
 
+  private final int mBitmapWidth, mBitmapHeight;
+
   public BitmapContainer(int bitmapWidth, int bitmapHeight, int transformInitialScaleX, int transformInitialScaleY,
                          Integer initialBgColor) {
+    this.mBitmapWidth = bitmapWidth;
+    this.mBitmapHeight = bitmapHeight;
     this.mBitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
     this.mViewTransform = new Matrix();
 
@@ -30,6 +34,14 @@ public class BitmapContainer {
     // apply our transforms
     mViewTransform.setScale(transformInitialScaleX, transformInitialScaleY);
     mPaint = new Paint();
+  }
+
+  public int getBitmapWidth() {
+    return mBitmapWidth;
+  }
+
+  public int getBitmapHeight() {
+    return mBitmapHeight;
   }
 
   /**

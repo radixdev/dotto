@@ -10,4 +10,5 @@ public interface IViewInterface {
   void setPlaying(boolean playing);
 
   Point convertScreenPointToLocalPoint(PointF screenCoordinate);
+  Point convertLocalPointToScreenPoint(Point localCoordinate);
 }

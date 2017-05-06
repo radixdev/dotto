@@ -51,32 +51,37 @@ public class MainActivity extends AppCompatActivity {
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        // R.style.Theme_Design is also good here
-        new SpectrumDialog.Builder(context, R.style.Theme_Design_BottomSheetDialog)
-            .setColors(GameColor.ALL_COLOR_VALUES)
-            .setDismissOnColorSelected(true)
-            .setPositiveButtonText("")
-            .setNegativeButtonText("")
-            .setSelectedColor(100) // a color that's not here
-            .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
-              @Override
-              public void onColorSelected(boolean positiveResult, @ColorInt int selectedColor) {
-                if (positiveResult) {
-                  // get the color somehow?
-                  for (int i = 0; i < GameColor.ALL_COLOR_VALUES.length; i++) {
-                    if (GameColor.ALL_COLOR_VALUES[i] == selectedColor) {
-                      // set the color
-                      mUserGestureController.setUserColorChoice(GameColor.values()[i]);
-                      Log.d(TAG, "Selected color of : " + GameColor.values()[i]);
-                      fab.setBackgroundTintList(ColorStateList.valueOf(selectedColor));
-                      break;
-                    }
-                  }
-                }
-              }
-            }).build().show(getSupportFragmentManager(), "");
+        createColorPicker(context, fab);
       }
     });
+  }
+
+  private void createColorPicker(Context context, final FloatingActionButton fab) {
+    // R.style.Theme_Design is also good here
+    new SpectrumDialog.Builder(context, R.style.Theme_Design_BottomSheetDialog)
+        .setColors(GameColor.ALL_COLOR_VALUES)
+        .setDismissOnColorSelected(true)
+        .setPositiveButtonText("")
+        .setNegativeButtonText("")
+        .setSelectedColor(100) // a color that's not here
+        .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
+          @Override
+          public void onColorSelected(boolean positiveResult, @ColorInt int selectedColor) {
+            if (positiveResult) {
+              // get the color somehow?
+              for (int i = 0; i < GameColor.ALL_COLOR_VALUES.length; i++) {
+                if (GameColor.ALL_COLOR_VALUES[i] == selectedColor) {
+                  // set the color
+                  mUserGestureController.setUserColorChoice(GameColor.values()[i]);
+                  Log.d(TAG, "Selected color of : " + GameColor.values()[i]);
+                  fab.setBackgroundTintList(ColorStateList.valueOf(selectedColor));
+                  break;
+                }
+              }
+            }
+          }
+        })
+        .build().show(getSupportFragmentManager(), "");
   }
 
   private void setupGameState() {
@@ -110,10 +115,15 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
-    boolean scaleHandled = mScaleGestureDetector.onTouchEvent(event);
+//    boolean scaleHandled = mScaleGestureDetector.onTouchEvent(event);
 //    if (!mScaleGestureDetector.isInProgress()) {
-    boolean touchHandled = this.mGestureDetector.onTouchEvent(event);
+//      boolean touchHandled = this.mGestureDetector.onTouchEvent(event);
+//      return scaleHandled || touchHandled;
 //    }
+//    return scaleHandled;
+
+    boolean scaleHandled = mScaleGestureDetector.onTouchEvent(event);
+    boolean touchHandled = mGestureDetector.onTouchEvent(event);
     return scaleHandled || touchHandled;
   }
 
@@ -124,15 +134,18 @@ public class MainActivity extends AppCompatActivity {
       return true;
     }
 
-//    @Override
-//    public boolean onDown(MotionEvent motionEvent) {
-//      mUserGestureController.onUserTouch(new PointF(motionEvent.getX(), motionEvent.getY()));
-//      return true;
-//    }
+    @Override
+    public boolean onSingleTapConfirmed(MotionEvent e) {
+      Log.d(TAG, "single tap");
+      mUserGestureController.onUserSingleTap(new PointF(e.getX(), e.getY()));
+      return true;
+    }
 
     @Override
     public void onLongPress(MotionEvent motionEvent) {
-      mUserGestureController.onUserTouch(new PointF(motionEvent.getX(), motionEvent.getY()));
+      Log.d(TAG, "long press");
+
+//      mUserGestureController.onUserLongTap(new PointF(motionEvent.getX(), motionEvent.getY()));
     }
   }
 

@@ -24,7 +24,9 @@ import radix.com.dotto.controllers.UserGestureController;
 import radix.com.dotto.models.IModelInterface;
 import radix.com.dotto.models.WorldMap;
 import radix.com.dotto.utils.enums.GameColor;
+import radix.com.dotto.utils.framerate.FramerateTracker;
 import radix.com.dotto.utils.framerate.FramerateUtils;
+import radix.com.dotto.views.animator.CircleFocuser;
 import radix.com.dotto.views.containers.BitmapContainer;
 import radix.com.dotto.views.containers.BitmapContainerBuilder;
 
@@ -39,6 +41,8 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   private Bitmap mCanvasBitmap = null;
   private SurfaceHolder mSurfaceHolder;
   private int mScreenWidth, mScreenHeight;
+  private PointF mScreenCenterCoordinate;
+  private FramerateTracker mFramerateTracker;
 
   private Canvas mBackingCanvas = null;
   private Matrix mTransformMatrix;
@@ -47,6 +51,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   // Drawing the other stuff
   private BitmapContainer mBackgroundContainer;
   private BitmapContainer mCenterOfScreenContainer;
+  private CircleFocuser mUserFocusAnimator;
 
   // Controller interface
   private UserGestureController mUserGestureController;
@@ -71,6 +76,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     mSurfaceHolder = getHolder();
     mSurfaceHolder.addCallback(this);
     mPixelPaint = new Paint();
+    mFramerateTracker = new FramerateTracker(60);
   }
 
   @Override
@@ -79,7 +85,9 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
       long start = System.currentTimeMillis();
       executeDraw();
       long end = System.currentTimeMillis();
-      controlFramerate(end - start);
+      final long frameTime = end - start;
+      mFramerateTracker.addFrameTime(frameTime);
+      controlFramerate(frameTime);
     }
   }
 
@@ -120,8 +128,8 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     }
   }
 
-  private void drawBackground(Canvas canvas) {
-    canvas.drawBitmap(mBackgroundContainer.getBitmap(), mBackgroundContainer.getViewTransform(), null);
+  private void drawBackground(Canvas drawContextCanvas) {
+    drawContextCanvas.drawBitmap(mBackgroundContainer.getBitmap(), mBackgroundContainer.getViewTransform(), null);
   }
 
   private void drawCenterOfScreenHUD(Canvas drawContextCanvas) {
@@ -132,11 +140,16 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
     final Paint paint = mCenterOfScreenContainer.getPaint();
 
-    Point centerPoint = convertScreenPointToLocalPoint(new PointF(mScreenWidth / 2, mScreenHeight / 2));
+    Point centerPoint = convertScreenPointToLocalPoint(mScreenCenterCoordinate);
     final String hudText = String.format("(%s, %s)", centerPoint.x, centerPoint.y);
-    containerCanvas.drawText(hudText, 150, hudHeight - 5, paint);
+    containerCanvas.drawText(hudText, mCenterOfScreenContainer.getBitmapWidth() / 2, mCenterOfScreenContainer.getBitmapHeight() - 5, paint);
 
     drawContextCanvas.drawBitmap(mCenterOfScreenContainer.getBitmap(), mCenterOfScreenContainer.getViewTransform(), paint);
+  }
+
+  private void drawUserFocusAnimator(Canvas drawContextCanvas) {
+    PixelInfo info = mUserGestureController.getUserFocusInfo();
+    mUserFocusAnimator.draw(drawContextCanvas, info.getPointX(), info.getPointY());
   }
 
   int where = 0;
@@ -145,13 +158,10 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   public void draw(Canvas canvas) {
     super.draw(canvas);
 
+    // Background
     drawBackground(canvas);
 
-//    mPixelPaint.setColor(GameColor.getRandomColor());
-//    for (int i = 0; i < 128; i++) {
-//      mBackingCanvas.drawPoint(random.nextInt(1000), random.nextInt(1000), mPixelPaint);
-//    }
-
+    // The good stuff
     final int size = 1000;
     for (int i = 0; i < 1; i++) {
       mPixelPaint.setColor(GameColor.getRandomColor());
@@ -163,7 +173,8 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     // Pop from the model
     if (mWorldMap.hasGridInfo()) {
       List<PixelInfo> taps = mWorldMap.getGridInfo(1000);
-      for (PixelInfo info : taps) {
+      for (int i = 0, tapsSize = taps.size(); i < tapsSize; i++) {
+        PixelInfo info = taps.get(i);
         mPixelPaint.setColor(info.getColor().getColor());
         mBackingCanvas.drawPoint(info.getPointX(), info.getPointY(), mPixelPaint);
       }
@@ -174,6 +185,8 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     // HW canvases need a paint here for some reason
     canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, mPixelPaint);
 
+    // HUD
+    drawUserFocusAnimator(canvas);
     drawCenterOfScreenHUD(canvas);
   }
 
@@ -196,6 +209,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   public void surfaceCreated(SurfaceHolder surfaceHolder) {
     mScreenWidth = getWidth();
     mScreenHeight = getHeight();
+    mScreenCenterCoordinate = new PointF(mScreenWidth / 2, mScreenHeight / 2);
     mCanvasBitmap = Bitmap.createBitmap(mWorldMap.getWorldWidth(), mWorldMap.getWorldHeight(), Bitmap.Config.ARGB_8888);
     mBackingCanvas = new Canvas();
     mBackingCanvas.setBitmap(mCanvasBitmap);
@@ -209,19 +223,26 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
         .setInitialBgColor(Color.rgb(220, 220, 220))
         .build();
 
+    // Center screen hud
     createCenterOfScreenHud();
+
+    // Create the user focus animator
+    BitmapContainer mUserTapFocusContainer = new BitmapContainerBuilder()
+        .setBitmapWidth(300, 300)
+        .build();
+
+    mUserFocusAnimator = new CircleFocuser(mUserTapFocusContainer, 2000L);
+    mUserFocusAnimator.start();
   }
 
-  int hudHeight;
   private void createCenterOfScreenHud() {
-    hudHeight = 50;
     mCenterOfScreenContainer = new BitmapContainerBuilder()
-        .setBitmapWidth(300, hudHeight)
+        .setBitmapWidth(300, 50)
         .build();
 
     // de-offset this to the screen bottom left
     Matrix matrix = mCenterOfScreenContainer.getViewTransform();
-    matrix.setTranslate(0, mScreenHeight - hudHeight);
+    matrix.setTranslate(0, mScreenHeight - mCenterOfScreenContainer.getBitmapHeight());
 
     final Paint paint = mCenterOfScreenContainer.getPaint();
     paint.setTextAlign(Paint.Align.CENTER);
@@ -264,6 +285,16 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     mTransformMatrix.invert(inverse);
     float[] screenPts = new float[]{screenCoordinate.x, screenCoordinate.y};
     inverse.mapPoints(screenPts);
+
+    return new Point((int) screenPts[0], (int) screenPts[1]);
+  }
+
+  @Override
+  public Point convertLocalPointToScreenPoint(Point localCoordinate) {
+//    Matrix inverse = new Matrix();
+//    mTransformMatrix.invert(inverse);
+    float[] screenPts = new float[]{localCoordinate.x + 0.5f, localCoordinate.y + 0.5f};
+    mTransformMatrix.mapPoints(screenPts);
 
     return new Point((int) screenPts[0], (int) screenPts[1]);
   }
