@@ -144,8 +144,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onLongPress(MotionEvent motionEvent) {
       Log.d(TAG, "long press");
-
-//      mUserGestureController.onUserLongTap(new PointF(motionEvent.getX(), motionEvent.getY()));
+      mUserGestureController.onUserLongTap(new PointF(motionEvent.getX(), motionEvent.getY()));
     }
   }
 

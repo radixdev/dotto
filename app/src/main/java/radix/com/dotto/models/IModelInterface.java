@@ -1,5 +1,7 @@
 package radix.com.dotto.models;
 
+import android.graphics.Point;
+
 import java.util.List;
 
 import radix.com.dotto.controllers.PixelInfo;
@@ -21,6 +23,8 @@ public interface IModelInterface {
    * @return
    */
   List<PixelInfo> getGridInfo(int maxElements);
+
+  boolean isLocalPointOutsideWorldBounds(Point localPoint);
 
   boolean hasGridInfo();
 }

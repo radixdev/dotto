@@ -57,6 +57,8 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   // Controller interface
   private UserGestureController mUserGestureController;
   private IModelInterface mWorldMap;
+  private static final float[] SCREEN_CONVERSION_TEST_POINTS_FOUR = new float[4];
+  private static final float[] SCREEN_CONVERSION_TEST_POINTS_TWO = new float[2];
 
   public PixelGridSurfaceView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -142,7 +144,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     final Paint paint = mCenterOfScreenContainer.getPaint();
 
     Point centerPoint = convertScreenPointToLocalPoint(mScreenCenterCoordinate);
-    final String hudText = String.format("(%s, %s)", centerPoint.x, centerPoint.y);
+    final String hudText = "(" + centerPoint.x + ", " + centerPoint.y + ")";
     containerCanvas.drawText(hudText, mCenterOfScreenContainer.getBitmapWidth() / 2, mCenterOfScreenContainer.getBitmapHeight() - 5, paint);
 
     drawContextCanvas.drawBitmap(mCenterOfScreenContainer.getBitmap(), mCenterOfScreenContainer.getViewTransform(), paint);
@@ -154,11 +156,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     Point screenPoint = convertLocalPointToScreenPoint(localInfo.getPointX(), localInfo.getPointY());
 
     // Get the size in pixels of a square on screen
-    Point p0 = convertLocalPointToScreenPoint(0, 0);
-    Point p1 = convertLocalPointToScreenPoint(1, 0);
-
-    int pixelLength = p1.x - p0.x;
-
+    int pixelLength = getDotLengthInScreenPixels();
     mUserFocusAnimator.draw(drawContextCanvas, screenPoint.x, screenPoint.y, pixelLength);
   }
 
@@ -196,7 +194,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, mPixelPaint);
 
     // HUD
-    if (mUserGestureController.getControllerState() == ControllerState.TEST_TAP) {
+    if (mUserGestureController.getControllerState() == ControllerState.USER_FOCUSING) {
       drawUserFocusAnimator(canvas);
     }
     drawCenterOfScreenHUD(canvas);
@@ -294,19 +292,35 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   public Point convertScreenPointToLocalPoint(PointF screenCoordinate) {
     Matrix inverse = new Matrix();
     mTransformMatrix.invert(inverse);
-    float[] screenPts = new float[]{screenCoordinate.x, screenCoordinate.y};
-    inverse.mapPoints(screenPts);
+    SCREEN_CONVERSION_TEST_POINTS_TWO[0] = screenCoordinate.x;
+    SCREEN_CONVERSION_TEST_POINTS_TWO[1] = screenCoordinate.y;
+    inverse.mapPoints(SCREEN_CONVERSION_TEST_POINTS_TWO);
 
-    return new Point((int) screenPts[0], (int) screenPts[1]);
+    return new Point((int) SCREEN_CONVERSION_TEST_POINTS_TWO[0], (int) SCREEN_CONVERSION_TEST_POINTS_TWO[1]);
   }
 
   @Override
   public Point convertLocalPointToScreenPoint(int localX, int localY) {
     // The 0.5f is added since we want to return the center of the dot and not top left origin point
-    float[] screenPts = new float[]{localX + 0.5f, localY + 0.5f};
-    mTransformMatrix.mapPoints(screenPts);
+    SCREEN_CONVERSION_TEST_POINTS_TWO[0] = localX + 0.5f;
+    SCREEN_CONVERSION_TEST_POINTS_TWO[1] = localY + 0.5f;
+    mTransformMatrix.mapPoints(SCREEN_CONVERSION_TEST_POINTS_TWO);
 
-    return new Point((int) screenPts[0], (int) screenPts[1]);
+    return new Point((int) SCREEN_CONVERSION_TEST_POINTS_TWO[0], (int) SCREEN_CONVERSION_TEST_POINTS_TWO[1]);
+  }
+
+  /**
+   * Get the size in pixels of a square on screen
+   */
+  private int getDotLengthInScreenPixels() {
+    SCREEN_CONVERSION_TEST_POINTS_FOUR[0] = 0;
+    SCREEN_CONVERSION_TEST_POINTS_FOUR[1] = 0;
+    SCREEN_CONVERSION_TEST_POINTS_FOUR[2] = 1;
+    SCREEN_CONVERSION_TEST_POINTS_FOUR[3] = 0;
+    mTransformMatrix.mapPoints(SCREEN_CONVERSION_TEST_POINTS_FOUR);
+
+    // The second x minus the first x
+    return (int) (SCREEN_CONVERSION_TEST_POINTS_FOUR[2] - SCREEN_CONVERSION_TEST_POINTS_FOUR[0]);
   }
 
   @Override
@@ -317,7 +331,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
         mUserFocusAnimator.end();
         break;
 
-      case TEST_TAP:
+      case USER_FOCUSING:
         // start the animator
         mUserFocusAnimator.start();
         break;

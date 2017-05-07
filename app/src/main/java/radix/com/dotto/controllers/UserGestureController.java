@@ -44,21 +44,29 @@ public class UserGestureController {
   }
 
   /**
+   * Performs zoom from the user. Transitions the controller state.
+   *
    * @param zoomFactor
    * @param zoomCenterScreen where the user is zooming on screen
    */
   public void onUserZoom(float zoomFactor, PointF zoomCenterScreen) {
-//    changeControllerState(ControllerState.PANNING);
+    changeControllerState(ControllerState.PANNING);
+    doZoom(zoomFactor, zoomCenterScreen);
+  }
 
-    if (mScaleFactor <= MIN_ZOOM && zoomFactor < 1f) {
-      // Don't allow for over zoom
+  /**
+   * Performs a zoom. No state change is made.
+   * @param zoomFactor
+   * @param zoomCenterScreen
+   */
+  private void doZoom(float zoomFactor, PointF zoomCenterScreen) {
+    if (mScaleFactor <= MIN_ZOOM && zoomFactor < 1f ||
+        mScaleFactor >= MAX_ZOOM && zoomFactor > 1f) {
+      // Don't allow for over zoom or under zoom
       // A zoom factor < 1 means a zoom out
       return;
     }
 
-    if (mScaleFactor >= MAX_ZOOM && zoomFactor > 1f) {
-      return;
-    }
     mScaleFactor *= zoomFactor;
 
     // see http://stackoverflow.com/a/13962157
@@ -72,24 +80,33 @@ public class UserGestureController {
   }
 
   public void onUserScroll(float scrollDistanceX, float scrollDistanceY) {
-//    changeControllerState(ControllerState.PANNING);
+    changeControllerState(ControllerState.PANNING);
     mScreenOffsetX -= scrollDistanceX * 1;
     mScreenOffsetY -= scrollDistanceY * 1;
   }
 
   public void onUserSingleTap(PointF touch) {
-    onUserZoom(MAX_ZOOM / mScaleFactor, touch);
-    changeControllerState(ControllerState.TEST_TAP);
+    Point localPoint = mGameView.convertScreenPointToLocalPoint(touch);
+    if (mWorldMap.isLocalPointOutsideWorldBounds(localPoint)) {
+      Log.d(TAG, "Focus point was outside map bounds");
+      return;
+    }
+    doZoom(MAX_ZOOM / mScaleFactor, touch);
+    changeControllerState(ControllerState.USER_FOCUSING);
 
     // This process of screen -> local -> screen effectively "snaps" to the center of a dot on screen
-    Point localPoint = mGameView.convertScreenPointToLocalPoint(touch);
     mUserFocusInfoLocation = new PixelInfo(mColorChoice, new Point(localPoint.x, localPoint.y));
   }
 
   public void onUserLongTap(PointF touch) {
+    final Point localPoint = mGameView.convertScreenPointToLocalPoint(touch);
+    if (mWorldMap.isLocalPointOutsideWorldBounds(localPoint)) {
+      Log.d(TAG, "Long tap point was outside map bounds");
+      return;
+    }
     changeControllerState(ControllerState.PANNING);
     // Pass the touch to the model
-    PixelInfo info = new PixelInfo(mColorChoice, mGameView.convertScreenPointToLocalPoint(touch));
+    PixelInfo info = new PixelInfo(mColorChoice, localPoint);
     mWorldMap.onPixelInfoChange(info);
   }
 

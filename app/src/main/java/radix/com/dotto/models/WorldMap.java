@@ -1,5 +1,6 @@
 package radix.com.dotto.models;
 
+import android.graphics.Point;
 import android.util.Log;
 
 import com.google.firebase.database.ChildEventListener;
@@ -123,5 +124,11 @@ public class WorldMap implements IModelInterface {
   @Override
   public boolean hasGridInfo() {
     return !mPixelData.isEmpty();
+  }
+
+  @Override
+  public boolean isLocalPointOutsideWorldBounds(Point localPoint) {
+    return (localPoint.x < 0 || localPoint.x > getWorldWidth() ||
+        localPoint.y < 0 || localPoint.y > getWorldHeight());
   }
 }

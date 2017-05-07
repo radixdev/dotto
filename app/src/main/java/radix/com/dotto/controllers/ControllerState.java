@@ -11,5 +11,5 @@ public enum ControllerState {
   /**
    * Single tap of the screen. Shows the player what's going on.
    */
-  TEST_TAP
+  USER_FOCUSING
 }
