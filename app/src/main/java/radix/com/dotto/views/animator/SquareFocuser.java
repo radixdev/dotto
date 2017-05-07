@@ -5,56 +5,53 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
+import android.graphics.Rect;
 
 import radix.com.dotto.views.containers.BitmapContainer;
 
 /**
- * Breathing circle around the center of the canvas
+ *
  */
-public class CircleFocuser extends TimeAnimatorBase {
+public class SquareFocuser extends TimeAnimatorBase {
   private static final String TAG = CircleFocuser.class.toString();
 
   private final BitmapContainer bitmapContainer;
-  private final long animationFrequency;
 
   private final Paint paint;
   private int halfWidth;
   private int halfHeight;
 
-  private final double WAVE_CONSTANT;
-
-  public CircleFocuser(BitmapContainer bitmapContainer, long frequency) {
+  public SquareFocuser(BitmapContainer bitmapContainer) {
     this.bitmapContainer = bitmapContainer;
-    this.animationFrequency = frequency;
 
     paint = bitmapContainer.getPaint();
     halfWidth = bitmapContainer.getBitmapWidth() / 2;
     halfHeight = bitmapContainer.getBitmapHeight() / 2;
-
-    WAVE_CONSTANT = Math.PI * 2d / (double) animationFrequency;
   }
 
-  public void draw(Canvas actualScreenCanvas, float centerX, float centerY, float zoomFactor) {
+  public void draw(Canvas actualScreenCanvas, float centerX, float centerY, float scaleValue) {
     // Clear the background
     Canvas containerCanvas = bitmapContainer.getCanvas();
     containerCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+//    containerCanvas.drawColor(Color.argb(200, 255, 255, 255));
 
-    // draw the thing
-    // get the radius
-    double low = 0d;
-    double high = bitmapContainer.getBitmapHeight() * 0.5d;
-    double radius = -Math.cos(WAVE_CONSTANT * getElapsed()) * (high - low)/2d + (high - low)/2d;
-//    Log.d(TAG, "radius: " + radius);
+    // draw a square
+    Rect rect = new Rect(0, 0, bitmapContainer.getBitmapWidth(), bitmapContainer.getBitmapHeight());
 
     paint.setStyle(Paint.Style.STROKE);
-    paint.setStrokeWidth(30f);
-    paint.setColor(Color.HSVToColor(new float[]{(getElapsed()/32) % 360, 1, 1}));
-    containerCanvas.drawCircle(halfWidth, halfHeight, (float) radius, paint);
+    paint.setStrokeWidth(50f);
+    paint.setColor(Color.HSVToColor(new float[]{(getElapsed() / 16) % 360, 1, 1}));
+    containerCanvas.drawRect(rect, paint);
 
     // Back draw
     Matrix matrix = bitmapContainer.getViewTransform();
     matrix.reset();
     matrix.setTranslate(centerX - halfWidth, centerY - halfHeight);
+
+    // The scale is a relation between the bitmap size and the size of a dot on screen
+    float scale = (scaleValue + paint.getStrokeWidth()) / bitmapContainer.getBitmapWidth();
+    matrix.setScale(scale, scale);
+    matrix.postTranslate(centerX - halfWidth * scale, centerY - halfHeight * scale);
     actualScreenCanvas.drawBitmap(bitmapContainer.getBitmap(), bitmapContainer.getViewTransform(), paint);
   }
 }

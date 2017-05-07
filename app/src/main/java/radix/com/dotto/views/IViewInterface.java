@@ -12,7 +12,7 @@ public interface IViewInterface {
   void setPlaying(boolean playing);
 
   Point convertScreenPointToLocalPoint(PointF screenCoordinate);
-  Point convertLocalPointToScreenPoint(Point localCoordinate);
+  Point convertLocalPointToScreenPoint(int localX, int localY);
 
   void onControllerStateChange(ControllerState newState);
 }

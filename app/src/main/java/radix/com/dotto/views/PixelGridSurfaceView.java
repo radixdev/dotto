@@ -27,7 +27,7 @@ import radix.com.dotto.models.WorldMap;
 import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.utils.framerate.FramerateTracker;
 import radix.com.dotto.utils.framerate.FramerateUtils;
-import radix.com.dotto.views.animator.CircleFocuser;
+import radix.com.dotto.views.animator.SquareFocuser;
 import radix.com.dotto.views.containers.BitmapContainer;
 import radix.com.dotto.views.containers.BitmapContainerBuilder;
 
@@ -52,7 +52,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   // Drawing the other stuff
   private BitmapContainer mBackgroundContainer;
   private BitmapContainer mCenterOfScreenContainer;
-  private CircleFocuser mUserFocusAnimator;
+  private SquareFocuser mUserFocusAnimator;
 
   // Controller interface
   private UserGestureController mUserGestureController;
@@ -149,8 +149,17 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   }
 
   private void drawUserFocusAnimator(Canvas drawContextCanvas) {
-    PixelInfo info = mUserGestureController.getUserFocusInfo();
-    mUserFocusAnimator.draw(drawContextCanvas, info.getPointX(), info.getPointY(), mUserGestureController.getScaleFactor());
+    PixelInfo localInfo = mUserGestureController.getUserFocusInfo();
+    // Convert it beforehand
+    Point screenPoint = convertLocalPointToScreenPoint(localInfo.getPointX(), localInfo.getPointY());
+
+    // Get the size in pixels of a square on screen
+    Point p0 = convertLocalPointToScreenPoint(0, 0);
+    Point p1 = convertLocalPointToScreenPoint(1, 0);
+
+    int pixelLength = p1.x - p0.x;
+
+    mUserFocusAnimator.draw(drawContextCanvas, screenPoint.x, screenPoint.y, pixelLength);
   }
 
   int where = 0;
@@ -231,10 +240,10 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
     // Create the user focus animator
     BitmapContainer mUserTapFocusContainer = new BitmapContainerBuilder()
-        .setBitmapWidth(100, 100)
+        .setBitmapWidth(200, 200)
         .build();
 
-    mUserFocusAnimator = new CircleFocuser(mUserTapFocusContainer, 1500L);
+    mUserFocusAnimator = new SquareFocuser(mUserTapFocusContainer);
   }
 
   private void createCenterOfScreenHud() {
@@ -292,8 +301,9 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   }
 
   @Override
-  public Point convertLocalPointToScreenPoint(Point localCoordinate) {
-    float[] screenPts = new float[]{localCoordinate.x + 0.5f, localCoordinate.y + 0.5f};
+  public Point convertLocalPointToScreenPoint(int localX, int localY) {
+    // The 0.5f is added since we want to return the center of the dot and not top left origin point
+    float[] screenPts = new float[]{localX + 0.5f, localY + 0.5f};
     mTransformMatrix.mapPoints(screenPts);
 
     return new Point((int) screenPts[0], (int) screenPts[1]);

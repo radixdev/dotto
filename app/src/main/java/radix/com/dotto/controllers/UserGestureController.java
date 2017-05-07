@@ -48,7 +48,7 @@ public class UserGestureController {
    * @param zoomCenterScreen where the user is zooming on screen
    */
   public void onUserZoom(float zoomFactor, PointF zoomCenterScreen) {
-    changeControllerState(ControllerState.PANNING);
+//    changeControllerState(ControllerState.PANNING);
 
     if (mScaleFactor <= MIN_ZOOM && zoomFactor < 1f) {
       // Don't allow for over zoom
@@ -72,21 +72,18 @@ public class UserGestureController {
   }
 
   public void onUserScroll(float scrollDistanceX, float scrollDistanceY) {
-    changeControllerState(ControllerState.PANNING);
+//    changeControllerState(ControllerState.PANNING);
     mScreenOffsetX -= scrollDistanceX * 1;
     mScreenOffsetY -= scrollDistanceY * 1;
   }
 
   public void onUserSingleTap(PointF touch) {
     onUserZoom(MAX_ZOOM / mScaleFactor, touch);
-    changeControllerState(ControllerState.PANNING);
     changeControllerState(ControllerState.TEST_TAP);
-
 
     // This process of screen -> local -> screen effectively "snaps" to the center of a dot on screen
     Point localPoint = mGameView.convertScreenPointToLocalPoint(touch);
-    Point screenPoint = mGameView.convertLocalPointToScreenPoint(localPoint);
-    mUserFocusInfoLocation = new PixelInfo(mColorChoice, new Point(screenPoint.x, screenPoint.y));
+    mUserFocusInfoLocation = new PixelInfo(mColorChoice, new Point(localPoint.x, localPoint.y));
   }
 
   public void onUserLongTap(PointF touch) {
