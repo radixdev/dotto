@@ -73,6 +73,7 @@ public class UserGestureController {
   }
 
   public void onUserSingleTap(PointF touch) {
+    changeControllerState(ControllerState.PANNING);
     changeControllerState(ControllerState.TEST_TAP);
 
     // This process of screen -> local -> screen effectively "snaps" to the center of a dot on screen
@@ -119,6 +120,8 @@ public class UserGestureController {
     }
     Log.d(TAG, "Changing state from " + mControllerState + " to " + newState);
     mControllerState = newState;
+
+    mGameView.onControllerStateChange(newState);
   }
 
   public ControllerState getControllerState() {

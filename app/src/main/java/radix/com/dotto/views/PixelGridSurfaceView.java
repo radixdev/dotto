@@ -19,6 +19,7 @@ import android.view.SurfaceView;
 
 import java.util.List;
 
+import radix.com.dotto.controllers.ControllerState;
 import radix.com.dotto.controllers.PixelInfo;
 import radix.com.dotto.controllers.UserGestureController;
 import radix.com.dotto.models.IModelInterface;
@@ -149,7 +150,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
   private void drawUserFocusAnimator(Canvas drawContextCanvas) {
     PixelInfo info = mUserGestureController.getUserFocusInfo();
-    mUserFocusAnimator.draw(drawContextCanvas, info.getPointX(), info.getPointY());
+    mUserFocusAnimator.draw(drawContextCanvas, info.getPointX(), info.getPointY(), mUserGestureController.getScaleFactor());
   }
 
   int where = 0;
@@ -186,7 +187,9 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, mPixelPaint);
 
     // HUD
-    drawUserFocusAnimator(canvas);
+    if (mUserGestureController.getControllerState() == ControllerState.TEST_TAP) {
+      drawUserFocusAnimator(canvas);
+    }
     drawCenterOfScreenHUD(canvas);
   }
 
@@ -231,8 +234,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
         .setBitmapWidth(300, 300)
         .build();
 
-    mUserFocusAnimator = new CircleFocuser(mUserTapFocusContainer, 2000L);
-    mUserFocusAnimator.start();
+    mUserFocusAnimator = new CircleFocuser(mUserTapFocusContainer, 1500L);
   }
 
   private void createCenterOfScreenHud() {
@@ -291,11 +293,27 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
   @Override
   public Point convertLocalPointToScreenPoint(Point localCoordinate) {
-//    Matrix inverse = new Matrix();
-//    mTransformMatrix.invert(inverse);
     float[] screenPts = new float[]{localCoordinate.x + 0.5f, localCoordinate.y + 0.5f};
     mTransformMatrix.mapPoints(screenPts);
 
     return new Point((int) screenPts[0], (int) screenPts[1]);
+  }
+
+  @Override
+  public void onControllerStateChange(ControllerState newState) {
+    switch (newState) {
+      case PANNING:
+        // end the animator
+        mUserFocusAnimator.end();
+        break;
+
+      case TEST_TAP:
+        // start the animator
+        mUserFocusAnimator.start();
+        break;
+
+      default:
+        Log.d(TAG, "got unknown state: " + newState);
+    }
   }
 }
