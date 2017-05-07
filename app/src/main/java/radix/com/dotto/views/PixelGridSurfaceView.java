@@ -231,7 +231,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
     // Create the user focus animator
     BitmapContainer mUserTapFocusContainer = new BitmapContainerBuilder()
-        .setBitmapWidth(300, 300)
+        .setBitmapWidth(100, 100)
         .build();
 
     mUserFocusAnimator = new CircleFocuser(mUserTapFocusContainer, 1500L);

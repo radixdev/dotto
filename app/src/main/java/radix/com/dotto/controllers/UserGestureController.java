@@ -15,12 +15,15 @@ import radix.com.dotto.views.IViewInterface;
 public class UserGestureController {
   private static final String TAG = UserGestureController.class.toString();
 
+  private static final float MIN_ZOOM = 1.1f;
+  private static final float MAX_ZOOM = 150f;
+
   private float mScaleFactor;
   private float mScreenOffsetX, mScreenOffsetY;
   private final IModelInterface mWorldMap;
   private IViewInterface mGameView;
-  private GameColor mColorChoice;
 
+  private GameColor mColorChoice;
   // Controller state
   private ControllerState mControllerState = ControllerState.PANNING;
   private PixelInfo mUserFocusInfoLocation;
@@ -41,17 +44,19 @@ public class UserGestureController {
   }
 
   /**
-   *
    * @param zoomFactor
    * @param zoomCenterScreen where the user is zooming on screen
    */
   public void onUserZoom(float zoomFactor, PointF zoomCenterScreen) {
     changeControllerState(ControllerState.PANNING);
 
-    final double MIN_ZOOM = 1.1f;
     if (mScaleFactor <= MIN_ZOOM && zoomFactor < 1f) {
       // Don't allow for over zoom
       // A zoom factor < 1 means a zoom out
+      return;
+    }
+
+    if (mScaleFactor >= MAX_ZOOM && zoomFactor > 1f) {
       return;
     }
     mScaleFactor *= zoomFactor;
@@ -68,13 +73,15 @@ public class UserGestureController {
 
   public void onUserScroll(float scrollDistanceX, float scrollDistanceY) {
     changeControllerState(ControllerState.PANNING);
-    mScreenOffsetX -= scrollDistanceX*1;
-    mScreenOffsetY -= scrollDistanceY*1;
+    mScreenOffsetX -= scrollDistanceX * 1;
+    mScreenOffsetY -= scrollDistanceY * 1;
   }
 
   public void onUserSingleTap(PointF touch) {
+    onUserZoom(MAX_ZOOM / mScaleFactor, touch);
     changeControllerState(ControllerState.PANNING);
     changeControllerState(ControllerState.TEST_TAP);
+
 
     // This process of screen -> local -> screen effectively "snaps" to the center of a dot on screen
     Point localPoint = mGameView.convertScreenPointToLocalPoint(touch);

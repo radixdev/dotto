@@ -41,10 +41,11 @@ public class CircleFocuser extends TimeAnimatorBase {
 
     // draw the thing
     // get the radius
-    double low = 5d;
-    double high = 50d;
-    double radius = -Math.cos(WAVE_CONSTANT * getElapsed()) * (high - low)/2 + (high - low)/2;
+    double low = 0d;
+    double high = bitmapContainer.getBitmapHeight() * 0.5d;
+    double radius = -Math.cos(WAVE_CONSTANT * getElapsed()) * (high - low)/2d + (high - low)/2d;
 //    Log.d(TAG, "radius: " + radius);
+    paint.setColor(Color.HSVToColor(new float[]{(getElapsed()/32) % 360, 1, 1}));
     containerCanvas.drawCircle(halfWidth, halfHeight, (float) radius, paint);
 
     // Back draw
