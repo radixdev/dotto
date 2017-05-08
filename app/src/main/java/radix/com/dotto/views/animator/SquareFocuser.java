@@ -47,7 +47,7 @@ public class SquareFocuser extends TimeAnimatorBase {
 
     // Back draw
     // The scale is a relation between the bitmap size and the size of a dot on screen
-    float scale = (pixelLengthOfDot + paint.getStrokeWidth()) / bitmapContainer.getBitmapWidth();
+    float scale = (pixelLengthOfDot + paint.getStrokeWidth()/2) / bitmapContainer.getBitmapWidth();
 
     matrix.reset();
     matrix.setScale(scale, scale);
