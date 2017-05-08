@@ -23,6 +23,17 @@ public class PixelInfo {
     this.pointY = pointY;
   }
 
+  /**
+   * Copies the location info but uses the new color
+   * @param color
+   * @param otherInfo
+   */
+  public PixelInfo(GameColor color, PixelInfo otherInfo) {
+    this.color = color;
+    this.pointX = otherInfo.pointX;
+    this.pointY = otherInfo.pointY;
+  }
+
   public GameColor getColor() {
     return color;
   }

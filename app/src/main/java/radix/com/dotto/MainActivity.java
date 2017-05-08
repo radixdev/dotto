@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         .setDismissOnColorSelected(true)
         .setPositiveButtonText("")
         .setNegativeButtonText("")
-        .setSelectedColor(100) // a color that's not here
+        .setSelectedColor(100) // a color that's not here so there's nothing selected
         .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
           @Override
           public void onColorSelected(boolean positiveResult, @ColorInt int selectedColor) {

@@ -107,11 +107,24 @@ public class UserGestureController {
     changeControllerState(ControllerState.PANNING);
     // Pass the touch to the model
     PixelInfo info = new PixelInfo(mColorChoice, localPoint);
+    applyDotFromUser(info);
+  }
+
+  private void applyDotFromUser(PixelInfo info) {
     mWorldMap.onPixelInfoChange(info);
   }
 
   public void setUserColorChoice(GameColor colorChoice) {
     mColorChoice = colorChoice;
+
+    if (mControllerState == ControllerState.USER_FOCUSING) {
+      // Assign the color using the focus point
+      if (mUserFocusInfoLocation != null) {
+        applyDotFromUser(new PixelInfo(colorChoice, mUserFocusInfoLocation));
+      } else {
+        Log.d(TAG, "Tried to apply null pixel info from the user focus!");
+      }
+    }
   }
 
   public GameColor getColorChoice() {
@@ -136,7 +149,6 @@ public class UserGestureController {
 
   private void changeControllerState(ControllerState newState) {
     if (mControllerState == newState) {
-//      Log.d(TAG, "Got call to cycle state from " + newState);
       return;
     }
     Log.d(TAG, "Changing state from " + mControllerState + " to " + newState);
