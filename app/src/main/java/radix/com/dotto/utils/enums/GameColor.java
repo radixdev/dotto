@@ -1,6 +1,7 @@
 package radix.com.dotto.utils.enums;
 
 import android.graphics.Color;
+import android.support.annotation.ColorInt;
 
 import java.util.Random;
 
@@ -46,7 +47,7 @@ public enum GameColor {
   /**
    * @return the color int as returned from the {@link Color} class
    */
-  public int getColor() {
+  public @ColorInt int getColor() {
     return color;
   }
 
@@ -57,12 +58,12 @@ public enum GameColor {
     return this.ordinal();
   }
 
-  public static int getRandomColor() {
+  public static @ColorInt int getRandomColor() {
     return colors[random.nextInt(colors.length)].getColor();
   }
 
   public static GameColor getGameColorByCode(int code) {
-    if (code > colors.length) {
+    if (code > colors.length || code < 0) {
       return WHITE;
     }
     return colors[code];
