@@ -85,26 +85,35 @@ public class UserGestureController {
     mScreenOffsetY -= scrollDistanceY * 1;
   }
 
-  public void onUserSingleTap(PointF touch) {
+  public void onUserRequestFocus(PointF touch) {
     Point localPoint = mGameView.convertScreenPointToLocalPoint(touch);
     if (mWorldMap.isLocalPointOutsideWorldBounds(localPoint)) {
       Log.d(TAG, "Focus point was outside map bounds");
       return;
     }
-    doZoom(MAX_ZOOM / mScaleFactor, touch);
-    changeControllerState(ControllerState.USER_FOCUSING);
 
-    // This process of screen -> local -> screen effectively "snaps" to the center of a dot on screen
+    boolean stateChanged = changeControllerState(ControllerState.USER_FOCUSING);
+    doZoom(MAX_ZOOM / mScaleFactor, touch);
+
+    // If the previous focus location was at the same point
+    PixelInfo previousInfo = mUserFocusInfoLocation;
     mUserFocusInfoLocation = new PixelInfo(mColorChoice, new Point(localPoint.x, localPoint.y));
+
+    if (!stateChanged && mUserFocusInfoLocation.equals(previousInfo)) {
+      // The state went from focusing to focusing again but at the same position
+      Log.d(TAG, "User requested focus at the same location. Applying dot");
+      applyDotFromUser(mUserFocusInfoLocation);
+      changeControllerState(ControllerState.PANNING);
+    }
   }
 
   public void onUserLongTap(PointF touch) {
+    changeControllerState(ControllerState.PANNING);
     final Point localPoint = mGameView.convertScreenPointToLocalPoint(touch);
     if (mWorldMap.isLocalPointOutsideWorldBounds(localPoint)) {
       Log.d(TAG, "Long tap point was outside map bounds");
       return;
     }
-    changeControllerState(ControllerState.PANNING);
     // Pass the touch to the model
     PixelInfo info = new PixelInfo(mColorChoice, localPoint);
     applyDotFromUser(info);
@@ -147,14 +156,21 @@ public class UserGestureController {
     return mUserFocusInfoLocation;
   }
 
-  private void changeControllerState(ControllerState newState) {
+  /**
+   * Changes the state
+   *
+   * @param newState
+   * @return true if the state changed
+   */
+  private boolean changeControllerState(ControllerState newState) {
     if (mControllerState == newState) {
-      return;
+      return false;
     }
     Log.d(TAG, "Changing state from " + mControllerState + " to " + newState);
     mControllerState = newState;
 
     mGameView.onControllerStateChange(newState);
+    return true;
   }
 
   public ControllerState getControllerState() {

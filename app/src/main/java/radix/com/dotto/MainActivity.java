@@ -135,16 +135,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onSingleTapConfirmed(MotionEvent e) {
+    public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
       Log.d(TAG, "single tap");
-      mUserGestureController.onUserSingleTap(new PointF(e.getX(), e.getY()));
+      mUserGestureController.onUserRequestFocus(getPointFromMotionEvent(motionEvent));
       return true;
     }
 
     @Override
     public void onLongPress(MotionEvent motionEvent) {
       Log.d(TAG, "long press");
-      mUserGestureController.onUserLongTap(new PointF(motionEvent.getX(), motionEvent.getY()));
+      mUserGestureController.onUserLongTap(getPointFromMotionEvent(motionEvent));
+    }
+
+    @Override
+    public boolean onDoubleTap(MotionEvent motionEvent) {
+      Log.d(TAG, "double tap");
+      mUserGestureController.onUserRequestFocus(getPointFromMotionEvent(motionEvent));
+      return true;
+    }
+
+    private PointF getPointFromMotionEvent(MotionEvent motionEvent) {
+      return new PointF(motionEvent.getX(), motionEvent.getY());
     }
   }
 

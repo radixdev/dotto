@@ -183,7 +183,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
       List<PixelInfo> taps = mWorldMap.getGridInfo(1000);
       for (int i = 0, tapsSize = taps.size(); i < tapsSize; i++) {
         PixelInfo info = taps.get(i);
-        mPixelPaint.setColor(info.getColor().getColor());
+        mPixelPaint.setColor(info.getColorInt());
         mBackingCanvas.drawPoint(info.getPointX(), info.getPointY(), mPixelPaint);
       }
     }

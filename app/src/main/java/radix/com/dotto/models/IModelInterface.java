@@ -26,5 +26,8 @@ public interface IModelInterface {
 
   boolean isLocalPointOutsideWorldBounds(Point localPoint);
 
+  /**
+   * @return true if the model has any pixel infos available
+   */
   boolean hasGridInfo();
 }

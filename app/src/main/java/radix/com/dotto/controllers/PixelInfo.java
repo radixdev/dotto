@@ -1,6 +1,7 @@
 package radix.com.dotto.controllers;
 
 import android.graphics.Point;
+import android.support.annotation.ColorInt;
 
 import radix.com.dotto.utils.enums.GameColor;
 
@@ -38,6 +39,10 @@ public class PixelInfo {
     return color;
   }
 
+  public @ColorInt int getColorInt() {
+    return color.getColor();
+  }
+
   public int getPointX() {
     return pointX;
   }
@@ -53,5 +58,26 @@ public class PixelInfo {
         ", pointX=" + pointX +
         ", pointY=" + pointY +
         '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    PixelInfo info = (PixelInfo) o;
+
+    if (pointX != info.pointX) return false;
+    if (pointY != info.pointY) return false;
+    return color == info.color;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = color.hashCode();
+    result = 31 * result + pointX;
+    result = 31 * result + pointY;
+    return result;
   }
 }
