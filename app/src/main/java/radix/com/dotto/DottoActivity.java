@@ -24,8 +24,8 @@ import radix.com.dotto.models.WorldMap;
 import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.views.PixelGridSurfaceView;
 
-public class MainActivity extends AppCompatActivity {
-  private static final String TAG = MainActivity.class.toString();
+public class DottoActivity extends AppCompatActivity {
+  private static final String TAG = DottoActivity.class.toString();
 
   private PixelGridSurfaceView mGameView;
   private WorldMap mWorldMap;

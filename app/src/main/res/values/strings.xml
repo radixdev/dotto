@@ -1,4 +1,9 @@
 <resources>
-  <string name="app_name">Dotto</string>
-  <string name="title_activity_main">MainActivity</string>
+    <string name="app_name">Dotto</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_auth">AuthActivity</string>
+
+    <string name="facebook_application_id" translatable="false">1996909263870454</string>
+    <!-- Facebook Application ID, prefixed by 'fb'.  Enables Chrome Custom tabs. -->
+    <string name="facebook_login_protocol_scheme" translatable="false">fb1996909263870454</string>
 </resources>
