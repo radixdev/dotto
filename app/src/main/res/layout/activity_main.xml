@@ -45,7 +45,6 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:visibility="gone"
         android:text="10:02"
         android:textColor="@color/white"
         android:textSize="33sp"/>

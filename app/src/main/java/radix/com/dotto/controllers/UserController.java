@@ -1,9 +1,11 @@
 package radix.com.dotto.controllers;
 
+import android.content.Context;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.util.Log;
 
+import radix.com.dotto.controllers.haptic.VibrateHandler;
 import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.models.abstractors.IModelInterface;
 import radix.com.dotto.utils.enums.GameColor;
@@ -22,13 +24,14 @@ public class UserController {
   private float mScreenOffsetX, mScreenOffsetY;
   private final IModelInterface mWorldMap;
   private IViewInterface mGameView;
+  private VibrateHandler mVibrateHandler;
 
   private GameColor mColorChoice;
   // Controller state
   private ControllerState mControllerState = ControllerState.PANNING;
   private DotInfo mUserFocusInfoLocation;
 
-  public UserController(WorldModel worldModel) {
+  public UserController(WorldModel worldModel, Context context) {
     mScaleFactor = 20f;
     mScreenOffsetX = 0;
     mScreenOffsetY = 0;
@@ -37,6 +40,8 @@ public class UserController {
 
     // TODO: 5/6/2017 test line. Remove this
     mUserFocusInfoLocation = new DotInfo(GameColor.DARK_GREEN, 100, 100);
+
+    mVibrateHandler = new VibrateHandler(context);
   }
 
   public void setViewInterface(IViewInterface viewInterface) {
@@ -120,11 +125,14 @@ public class UserController {
   }
 
   private void applyDotFromUser(DotInfo info) {
-    if (mWorldMap.getTimeUntilNextWrite() > 0L) {
-      Log.w(TAG, "Not applying user dot due to timeout");
+    if (mWorldMap.getTimeUntilNextWrite() > 0L || mWorldMap.getIsOffline()) {
+      Log.w(TAG, "Not applying user dot due to timeout or offline status");
+      mVibrateHandler.performFailure();
       return;
     }
 
+    // There's a high chance that the write will succeed at this point. Just do the vibration here
+    mVibrateHandler.performSuccess();
     mWorldMap.onWriteDotInfo(info);
     changeControllerState(ControllerState.PANNING);
   }
@@ -134,7 +142,7 @@ public class UserController {
 
     if (mControllerState == ControllerState.USER_FOCUSING) {
       // Assign the color using the focus point
-      if (mUserFocusInfoLocation != null) {
+      if (mUserFocusInfoLocation != null && !mWorldMap.getIsOffline() && !mWorldMap.isUserTimedOut()) {
         applyDotFromUser(new DotInfo(colorChoice, mUserFocusInfoLocation));
       } else {
         Log.d(TAG, "Tried to apply null pixel info from the user focus!");

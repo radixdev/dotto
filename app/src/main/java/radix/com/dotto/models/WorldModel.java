@@ -124,6 +124,7 @@ public class WorldModel implements IModelInterface {
         Log.d(TAG, "Write finished: " + databaseReference);
         if (databaseError == null) {
           Log.i(TAG, "Write succeeded");
+//          mUserController.getVibrateHandler().performSuccess();
         } else {
           Log.d(TAG, "Write failed!!! : " + databaseError);
         }
@@ -225,6 +226,16 @@ public class WorldModel implements IModelInterface {
   @Override
   public void setModelUpdateListener(IModelUpdateListener listener) {
     mModelListeners.add(listener);
+  }
+
+  @Override
+  public boolean getIsOffline() {
+    return !mIsOnline;
+  }
+
+  @Override
+  public boolean isUserTimedOut() {
+    return getTimeUntilNextWrite() > 0L;
   }
 
   private void setupConnectivityUpdateListener() {

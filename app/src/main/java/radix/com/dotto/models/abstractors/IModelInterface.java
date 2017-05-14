@@ -44,5 +44,9 @@ public interface IModelInterface {
    */
   long getTimeUntilNextWrite();
 
+  boolean isUserTimedOut();
+
   void setModelUpdateListener(IModelUpdateListener listener);
+
+  boolean getIsOffline();
 }

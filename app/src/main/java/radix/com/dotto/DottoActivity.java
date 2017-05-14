@@ -70,7 +70,7 @@ public class DottoActivity extends AppCompatActivity {
     mWorldModel.setModelUpdateListener(new IModelUpdateListener() {
       @Override
       public void onWriteTimeoutChange(long timeRemainingMs) {
-        if (timeRemainingMs > 50L) {
+        if (mWorldModel.isUserTimedOut()) {
           // Mark the view as visible
           timeoutLayout.setVisibility(View.VISIBLE);
         } else {
@@ -126,8 +126,9 @@ public class DottoActivity extends AppCompatActivity {
 
   private void setupGameState() {
     mWorldModel = new WorldModel();
-    mUserController = new UserController(mWorldModel);
+    mUserController = new UserController(mWorldModel, this.getApplicationContext());
     mGameView = (PixelGridSurfaceView) findViewById(R.id.gameView);
+
     mGameView.setModelAndController(mWorldModel, mUserController);
     mUserController.setViewInterface(mGameView);
 
