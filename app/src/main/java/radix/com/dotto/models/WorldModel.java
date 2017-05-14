@@ -21,6 +21,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 import radix.com.dotto.controllers.DotInfo;
+import radix.com.dotto.models.abstractors.IModelInterface;
+import radix.com.dotto.models.abstractors.IModelUpdateListener;
 
 public class WorldModel implements IModelInterface {
   private final String TAG = WorldModel.class.toString();
@@ -33,6 +35,8 @@ public class WorldModel implements IModelInterface {
 
   private int mConfigTimeoutSeconds = -1;
   private long mLastServerWriteTime = -1L;
+
+  private List<IModelUpdateListener> mModelListeners = new ArrayList<>();
 
   public WorldModel() {
     mPixelData = new CopyOnWriteArrayList<>();
@@ -215,8 +219,12 @@ public class WorldModel implements IModelInterface {
   public long getTimeUntilNextWrite() {
     // Note, this isn't the server time, so the value might look iffy
     long currentTimeNowMillis = System.currentTimeMillis();
-    long diff = (TimeUnit.MILLISECONDS.convert(mConfigTimeoutSeconds, TimeUnit.SECONDS) + mLastServerWriteTime) - currentTimeNowMillis;
-    return diff;
+    return (TimeUnit.MILLISECONDS.convert(mConfigTimeoutSeconds, TimeUnit.SECONDS) + mLastServerWriteTime) - currentTimeNowMillis;
+  }
+
+  @Override
+  public void setModelUpdateListener(IModelUpdateListener listener) {
+    mModelListeners.add(listener);
   }
 
   private void setupConnectivityUpdateListener() {
@@ -244,6 +252,10 @@ public class WorldModel implements IModelInterface {
       public void onDataChange(DataSnapshot snapshot) {
         mConfigTimeoutSeconds = snapshot.getValue(Integer.class);
         Log.d(TAG, "Config timeout: " + mConfigTimeoutSeconds);
+
+        for (IModelUpdateListener listener : mModelListeners) {
+          listener.onWriteTimeoutChange();
+        }
       }
 
       @Override
@@ -263,6 +275,10 @@ public class WorldModel implements IModelInterface {
         public void onDataChange(DataSnapshot snapshot) {
           mLastServerWriteTime = snapshot.getValue(Long.class);
           Log.d(TAG, "Last server write time: " + mLastServerWriteTime);
+
+          for (IModelUpdateListener listener : mModelListeners) {
+            listener.onWriteTimeoutChange();
+          }
         }
 
         @Override

@@ -1,4 +1,4 @@
-package radix.com.dotto.models;
+package radix.com.dotto.models.abstractors;
 
 import android.graphics.Point;
 
@@ -43,4 +43,6 @@ public interface IModelInterface {
    * @return the time in ms until the next write can be performed
    */
   long getTimeUntilNextWrite();
+
+  void setModelUpdateListener(IModelUpdateListener listener);
 }

@@ -22,7 +22,7 @@ import java.util.List;
 import radix.com.dotto.controllers.ControllerState;
 import radix.com.dotto.controllers.DotInfo;
 import radix.com.dotto.controllers.UserGestureController;
-import radix.com.dotto.models.IModelInterface;
+import radix.com.dotto.models.abstractors.IModelInterface;
 import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.utils.framerate.FramerateTracker;

@@ -16,6 +16,7 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import com.thebluealliance.spectrum.SpectrumDialog;
 
@@ -32,6 +33,9 @@ public class DottoActivity extends AppCompatActivity {
   private GestureDetectorCompat mGestureDetector;
   private ScaleGestureDetector mScaleGestureDetector;
   private UserGestureController mUserGestureController;
+
+  // View hybrids
+  private TextView mTimeoutTextview;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +58,9 @@ public class DottoActivity extends AppCompatActivity {
         createColorPicker(context, fab);
       }
     });
+
+    // Listen for timeout changes
+    mTimeoutTextview = (TextView) findViewById(R.id.timeoutTextView);
   }
 
   private void createColorPicker(Context context, final FloatingActionButton fab) {
