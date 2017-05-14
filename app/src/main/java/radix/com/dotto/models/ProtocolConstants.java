@@ -12,4 +12,8 @@ public class ProtocolConstants {
   public static final String TURNSTILE_TIME = "t";
   public static final String TURNSTILE_LOCATION = "l";
   public static final String TURNSTILE_COLOR = "c";
+
+  // config
+  public static final String CONFIG_PATH = "config";
+  public static final String CONFIG_TIMEOUT_SECONDS = "timeout_s";
 }

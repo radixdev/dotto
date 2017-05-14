@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
 import radix.com.dotto.controllers.DotInfo;
 
@@ -30,6 +31,9 @@ public class WorldModel implements IModelInterface {
   private FirebaseDatabase mFirebaseDatabase;
   private boolean mIsOnline;
 
+  private int mConfigTimeoutSeconds = -1;
+  private long mLastServerWriteTime = -1L;
+
   public WorldModel() {
     mPixelData = new CopyOnWriteArrayList<>();
     mReturnedPixelData = new ArrayList<>();
@@ -40,6 +44,7 @@ public class WorldModel implements IModelInterface {
 
     mPixelChildChangeListener = new PixelChildChangeListener();
     setupConnectivityUpdateListener();
+    setupTimeoutUpdateListener();
   }
 
   @Override
@@ -206,6 +211,14 @@ public class WorldModel implements IModelInterface {
         localPoint.y < 0 || localPoint.y > getWorldHeight());
   }
 
+  @Override
+  public long getTimeUntilNextWrite() {
+    // Note, this isn't the server time, so the value might look iffy
+    long currentTimeNowMillis = System.currentTimeMillis();
+    long diff = (TimeUnit.MILLISECONDS.convert(mConfigTimeoutSeconds, TimeUnit.SECONDS) + mLastServerWriteTime) - currentTimeNowMillis;
+    return diff;
+  }
+
   private void setupConnectivityUpdateListener() {
     DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
     connectedRef.addValueEventListener(new ValueEventListener() {
@@ -220,5 +233,43 @@ public class WorldModel implements IModelInterface {
         System.err.println("Listener was cancelled");
       }
     });
+  }
+
+  private void setupTimeoutUpdateListener() {
+    // The config value
+    DatabaseReference configTimeoutRef = FirebaseDatabase.getInstance().getReference(ProtocolConstants.CONFIG_PATH).child(ProtocolConstants.CONFIG_TIMEOUT_SECONDS);
+    configTimeoutRef.keepSynced(true);
+    configTimeoutRef.addValueEventListener(new ValueEventListener() {
+      @Override
+      public void onDataChange(DataSnapshot snapshot) {
+        mConfigTimeoutSeconds = snapshot.getValue(Integer.class);
+        Log.d(TAG, "Config timeout: " + mConfigTimeoutSeconds);
+      }
+
+      @Override
+      public void onCancelled(DatabaseError databaseError) {}
+    });
+
+    // The timeout value in the turnstile
+    FirebaseAuth auth = FirebaseAuth.getInstance();
+    // Users should be auth'd by the time they get here
+    if (auth.getCurrentUser() != null) {
+      DatabaseReference userTurnstileRef = FirebaseDatabase.getInstance().getReference(ProtocolConstants.TURNSTILE_PATH)
+          .child(auth.getCurrentUser().getUid())
+          .child(ProtocolConstants.TURNSTILE_TIME);
+      userTurnstileRef.keepSynced(true);
+      userTurnstileRef.addValueEventListener(new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot snapshot) {
+          mLastServerWriteTime = snapshot.getValue(Long.class);
+          Log.d(TAG, "Last server write time: " + mLastServerWriteTime);
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {}
+      });
+    } else {
+      throw new RuntimeException("User should be authorized by the time WorldModel is ran!");
+    }
   }
 }

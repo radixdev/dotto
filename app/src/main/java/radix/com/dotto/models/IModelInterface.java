@@ -37,4 +37,10 @@ public interface IModelInterface {
   boolean hasGridInfo();
 
   void setIsPlaying(boolean isPlaying);
+
+  /**
+   *
+   * @return the time in ms until the next write can be performed
+   */
+  long getTimeUntilNextWrite();
 }
