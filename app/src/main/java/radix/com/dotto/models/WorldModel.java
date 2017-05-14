@@ -4,6 +4,7 @@ import android.graphics.Point;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -37,10 +38,23 @@ public class WorldModel implements IModelInterface {
   private long mLastServerWriteTime = -1L;
 
   private List<IModelUpdateListener> mModelListeners = new ArrayList<>();
+  private DatabaseReference mConfigTimeoutRef;
+  private ValueEventListener mConfigTimeoutListener;
+  private DatabaseReference mUserTurnstileRef;
+  private ValueEventListener mUserTurnstileListener;
+
+  private final String mFirebaseUserUid;
 
   public WorldModel() {
     mPixelData = new CopyOnWriteArrayList<>();
     mReturnedPixelData = new ArrayList<>();
+
+    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    if (user == null) {
+      throw new RuntimeException("User should be authorized by the time WorldModel is ran!");
+    }
+    mFirebaseUserUid = user.getUid();
+    Log.i(TAG, "Uid: " + mFirebaseUserUid);
 
     mFirebaseDatabase = FirebaseDatabase.getInstance();
     mPixelPathReference = mFirebaseDatabase.getReference(ProtocolConstants.PIXEL_PATH);
@@ -56,8 +70,12 @@ public class WorldModel implements IModelInterface {
     Log.d(TAG, "Set playing to : " + isPlaying);
     if (isPlaying) {
       mPixelPathReference.addChildEventListener(mPixelChildChangeListener);
+      mConfigTimeoutRef.addValueEventListener(mConfigTimeoutListener);
+      mUserTurnstileRef.addValueEventListener(mUserTurnstileListener);
     } else {
       mPixelPathReference.removeEventListener(mPixelChildChangeListener);
+      mConfigTimeoutRef.removeEventListener(mConfigTimeoutListener);
+      mUserTurnstileRef.removeEventListener(mUserTurnstileListener);
     }
   }
 
@@ -88,26 +106,18 @@ public class WorldModel implements IModelInterface {
     values.put(ProtocolConstants.TURNSTILE_TIME, ServerValue.TIMESTAMP);
 
     // Write to our auth.uid
-    FirebaseAuth auth = FirebaseAuth.getInstance();
-
-    if (auth.getCurrentUser() != null) {
-      final String uid = auth.getCurrentUser().getUid();
-      Log.i(TAG, "Uid: " + uid);
-      turnstileRef.child(uid).setValue(values, new DatabaseReference.CompletionListener() {
-        @Override
-        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-          Log.d(TAG, "Turnstile write finished: " + databaseReference);
-          if (databaseError == null) {
-            // Success! Now try to write to the actual data list!
-            writeToDotPath(key, colorValue);
-          } else {
-            Log.d(TAG, "Write failed!!! : " + databaseError);
-          }
+    turnstileRef.child(mFirebaseUserUid).setValue(values, new DatabaseReference.CompletionListener() {
+      @Override
+      public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+        Log.d(TAG, "Turnstile write finished: " + databaseReference);
+        if (databaseError == null) {
+          // Success! Now try to write to the actual data list!
+          writeToDotPath(key, colorValue);
+        } else {
+          Log.d(TAG, "Write failed!!! : " + databaseError);
         }
-      });
-    } else {
-      Log.w(TAG, "Couldn't write due to current user being null");
-    }
+      }
+    });
   }
 
   /**
@@ -256,9 +266,12 @@ public class WorldModel implements IModelInterface {
 
   private void setupTimeoutUpdateListener() {
     // The config value
-    DatabaseReference configTimeoutRef = FirebaseDatabase.getInstance().getReference(ProtocolConstants.CONFIG_PATH).child(ProtocolConstants.CONFIG_TIMEOUT_SECONDS);
-    configTimeoutRef.keepSynced(true);
-    configTimeoutRef.addValueEventListener(new ValueEventListener() {
+    mConfigTimeoutRef = FirebaseDatabase.getInstance()
+        .getReference(ProtocolConstants.CONFIG_PATH)
+        .child(ProtocolConstants.CONFIG_TIMEOUT_SECONDS);
+    mConfigTimeoutRef.keepSynced(true);
+
+    mConfigTimeoutListener = new ValueEventListener() {
       @Override
       public void onDataChange(DataSnapshot snapshot) {
         mConfigTimeoutSeconds = snapshot.getValue(Integer.class);
@@ -271,32 +284,28 @@ public class WorldModel implements IModelInterface {
 
       @Override
       public void onCancelled(DatabaseError databaseError) {}
-    });
+    };
 
     // The timeout value in the turnstile
-    FirebaseAuth auth = FirebaseAuth.getInstance();
-    // Users should be auth'd by the time they get here
-    if (auth.getCurrentUser() != null) {
-      DatabaseReference userTurnstileRef = FirebaseDatabase.getInstance().getReference(ProtocolConstants.TURNSTILE_PATH)
-          .child(auth.getCurrentUser().getUid())
-          .child(ProtocolConstants.TURNSTILE_TIME);
-      userTurnstileRef.keepSynced(true);
-      userTurnstileRef.addValueEventListener(new ValueEventListener() {
-        @Override
-        public void onDataChange(DataSnapshot snapshot) {
-          mLastServerWriteTime = snapshot.getValue(Long.class);
-          Log.d(TAG, "Last server write time: " + mLastServerWriteTime);
+    mUserTurnstileRef = FirebaseDatabase.getInstance()
+        .getReference(ProtocolConstants.TURNSTILE_PATH)
+        .child(mFirebaseUserUid)
+        .child(ProtocolConstants.TURNSTILE_TIME);
 
-          for (IModelUpdateListener listener : mModelListeners) {
-            listener.onWriteTimeoutChange(getTimeUntilNextWrite());
-          }
+    mUserTurnstileRef.keepSynced(true);
+    mUserTurnstileListener = new ValueEventListener() {
+      @Override
+      public void onDataChange(DataSnapshot snapshot) {
+        mLastServerWriteTime = snapshot.getValue(Long.class);
+        Log.d(TAG, "Last server write time: " + mLastServerWriteTime);
+
+        for (IModelUpdateListener listener : mModelListeners) {
+          listener.onWriteTimeoutChange(getTimeUntilNextWrite());
         }
+      }
 
-        @Override
-        public void onCancelled(DatabaseError databaseError) {}
-      });
-    } else {
-      throw new RuntimeException("User should be authorized by the time WorldModel is ran!");
-    }
+      @Override
+      public void onCancelled(DatabaseError databaseError) {}
+    };
   }
 }
