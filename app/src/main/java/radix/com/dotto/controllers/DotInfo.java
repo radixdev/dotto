@@ -55,6 +55,7 @@ public class DotInfo {
   public String toString() {
     return "DotInfo{" +
         "color=" + color.getColor() +
+        ", color name=" + color +
         ", pointX=" + pointX +
         ", pointY=" + pointY +
         '}';
