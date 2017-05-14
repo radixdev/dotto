@@ -254,7 +254,7 @@ public class WorldModel implements IModelInterface {
         Log.d(TAG, "Config timeout: " + mConfigTimeoutSeconds);
 
         for (IModelUpdateListener listener : mModelListeners) {
-          listener.onWriteTimeoutChange();
+          listener.onWriteTimeoutChange(getTimeUntilNextWrite());
         }
       }
 
@@ -277,7 +277,7 @@ public class WorldModel implements IModelInterface {
           Log.d(TAG, "Last server write time: " + mLastServerWriteTime);
 
           for (IModelUpdateListener listener : mModelListeners) {
-            listener.onWriteTimeoutChange();
+            listener.onWriteTimeoutChange(getTimeUntilNextWrite());
           }
         }
 

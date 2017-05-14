@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import android.graphics.PointF;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.GestureDetectorCompat;
@@ -20,8 +21,13 @@ import android.widget.TextView;
 
 import com.thebluealliance.spectrum.SpectrumDialog;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import radix.com.dotto.controllers.UserGestureController;
 import radix.com.dotto.models.WorldModel;
+import radix.com.dotto.models.abstractors.IModelUpdateListener;
 import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.views.PixelGridSurfaceView;
 
@@ -61,6 +67,33 @@ public class DottoActivity extends AppCompatActivity {
 
     // Listen for timeout changes
     mTimeoutTextview = (TextView) findViewById(R.id.timeoutTextView);
+
+    mWorldModel.setModelUpdateListener(new IModelUpdateListener() {
+      @Override
+      public void onWriteTimeoutChange(long timeRemainingMs) {
+        if (timeRemainingMs > 50L) {
+          // Mark the view as visible
+          mTimeoutTextview.setVisibility(View.VISIBLE);
+        } else {
+          mTimeoutTextview.setVisibility(View.GONE);
+          return;
+        }
+
+        // format the time
+        new CountDownTimer(timeRemainingMs, 500L) {
+          public void onTick(long millisUntilFinished) {
+            Date date = new Date(millisUntilFinished + 1000L);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("m:ss", Locale.US);
+
+            mTimeoutTextview.setText(simpleDateFormat.format(date));
+          }
+
+          public void onFinish() {
+            mTimeoutTextview.setVisibility(View.GONE);
+          }
+        }.start();
+      }
+    });
   }
 
   private void createColorPicker(Context context, final FloatingActionButton fab) {

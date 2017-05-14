@@ -4,8 +4,8 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.util.Log;
 
-import radix.com.dotto.models.abstractors.IModelInterface;
 import radix.com.dotto.models.WorldModel;
+import radix.com.dotto.models.abstractors.IModelInterface;
 import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.views.IViewInterface;
 
@@ -37,8 +37,6 @@ public class UserGestureController {
 
     // TODO: 5/6/2017 test line. Remove this
     mUserFocusInfoLocation = new DotInfo(GameColor.DARK_GREEN, 100, 100);
-
-    // TODO: 5/14/2017 Add a listener for model updates and lock out the screen
   }
 
   public void setViewInterface(IViewInterface viewInterface) {
@@ -122,6 +120,11 @@ public class UserGestureController {
   }
 
   private void applyDotFromUser(DotInfo info) {
+    if (mWorldMap.getTimeUntilNextWrite() > 0L) {
+      Log.w(TAG, "Not applying user dot due to timeout");
+      return;
+    }
+
     mWorldMap.onWriteDotInfo(info);
     changeControllerState(ControllerState.PANNING);
   }
