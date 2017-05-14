@@ -5,7 +5,7 @@ import android.graphics.PointF;
 import android.util.Log;
 
 import radix.com.dotto.models.IModelInterface;
-import radix.com.dotto.models.WorldMap;
+import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.views.IViewInterface;
 
@@ -28,11 +28,11 @@ public class UserGestureController {
   private ControllerState mControllerState = ControllerState.PANNING;
   private DotInfo mUserFocusInfoLocation;
 
-  public UserGestureController(WorldMap worldMap) {
+  public UserGestureController(WorldModel worldModel) {
     mScaleFactor = 20f;
     mScreenOffsetX = 0;
     mScreenOffsetY = 0;
-    mWorldMap = worldMap;
+    mWorldMap = worldModel;
     mColorChoice = GameColor.CHAMBRAY;
 
     // TODO: 5/6/2017 test line. Remove this
@@ -121,6 +121,7 @@ public class UserGestureController {
 
   private void applyDotFromUser(DotInfo info) {
     mWorldMap.onWriteDotInfo(info);
+    changeControllerState(ControllerState.PANNING);
   }
 
   public void setUserColorChoice(GameColor colorChoice) {

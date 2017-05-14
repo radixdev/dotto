@@ -3,35 +3,43 @@ package radix.com.dotto.models;
 import android.graphics.Point;
 import android.util.Log;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import radix.com.dotto.controllers.DotInfo;
 
-public class WorldMap implements IModelInterface {
-  private final String TAG = WorldMap.class.toString();
+public class WorldModel implements IModelInterface {
+  private final String TAG = WorldModel.class.toString();
   private final List<DotInfo> mPixelData;
   private final List<DotInfo> mReturnedPixelData;
   private DatabaseReference mPixelPathReference;
   private PixelChildChangeListener mPixelChildChangeListener;
+  private FirebaseDatabase mFirebaseDatabase;
+  private boolean mIsOnline;
 
-  public WorldMap() {
+  public WorldModel() {
     mPixelData = new CopyOnWriteArrayList<>();
     mReturnedPixelData = new ArrayList<>();
 
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    mPixelPathReference = database.getReference(ProtocolConstants.PIXEL_PATH);
+    mFirebaseDatabase = FirebaseDatabase.getInstance();
+    mPixelPathReference = mFirebaseDatabase.getReference(ProtocolConstants.PIXEL_PATH);
     mPixelPathReference.keepSynced(true);
 
     mPixelChildChangeListener = new PixelChildChangeListener();
+    setupConnectivityUpdateListener();
   }
 
   @Override
@@ -46,16 +54,72 @@ public class WorldMap implements IModelInterface {
 
   @Override
   public void onWriteDotInfo(DotInfo info) {
+    if (!mIsOnline) {
+      Log.w(TAG, "User is offline. Nooping the write");
+      return;
+    }
+
     // verify the info is correct
     if (info.getPointX() < 0 || info.getPointX() > getWorldWidth() || info.getPointY() < 0 || info.getPointY() > getWorldHeight()) {
       Log.d(TAG, "Tried to draw out of bounds: " + info);
       return;
     }
 
-    Log.d(TAG, "Adding info at: " + info);
+    Log.i(TAG, "Adding info at: " + info);
     // turn the x,y into a key
-    String key = ProtocolHandler.getKeyFromCoordinates(info.getPointX(), info.getPointY());
-    mPixelPathReference.child(key).setValue(info.getColor().getCode());
+    final String key = ProtocolHandler.getKeyFromCoordinates(info.getPointX(), info.getPointY());
+    final int colorValue = info.getColor().getCode();
+    // Try to get authorized
+    DatabaseReference turnstileRef = mFirebaseDatabase.getReference(ProtocolConstants.TURNSTILE_PATH);
+
+    // Get a map of the values we want
+    Map<String, Object> values = new HashMap<>();
+    values.put(ProtocolConstants.TURNSTILE_COLOR, colorValue);
+    values.put(ProtocolConstants.TURNSTILE_LOCATION, key);
+    values.put(ProtocolConstants.TURNSTILE_TIME, ServerValue.TIMESTAMP);
+
+    // Write to our auth.uid
+    FirebaseAuth auth = FirebaseAuth.getInstance();
+
+    if (auth.getCurrentUser() != null) {
+      final String uid = auth.getCurrentUser().getUid();
+      Log.i(TAG, "Uid: " + uid);
+      turnstileRef.child(uid).setValue(values, new DatabaseReference.CompletionListener() {
+        @Override
+        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+          Log.d(TAG, "Turnstile write finished: " + databaseReference);
+          if (databaseError == null) {
+            // Success! Now try to write to the actual data list!
+            writeToDotPath(key, colorValue);
+          } else {
+            Log.d(TAG, "Write failed!!! : " + databaseError);
+          }
+        }
+      });
+    } else {
+      Log.w(TAG, "Couldn't write due to current user being null");
+    }
+  }
+
+  /**
+   * Writes to the dot ref. Will fail without the turnstile token!
+   *
+   * @param key
+   * @param colorValue
+   */
+  private void writeToDotPath(String key, int colorValue) {
+    Log.d(TAG, "Writing dot to path");
+    mPixelPathReference.child(key).setValue(colorValue, new DatabaseReference.CompletionListener() {
+      @Override
+      public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+        Log.d(TAG, "Write finished: " + databaseReference);
+        if (databaseError == null) {
+          Log.i(TAG, "Write succeeded");
+        } else {
+          Log.d(TAG, "Write failed!!! : " + databaseError);
+        }
+      }
+    });
   }
 
   /**
@@ -140,5 +204,21 @@ public class WorldMap implements IModelInterface {
   public boolean isLocalPointOutsideWorldBounds(Point localPoint) {
     return (localPoint.x < 0 || localPoint.x > getWorldWidth() ||
         localPoint.y < 0 || localPoint.y > getWorldHeight());
+  }
+
+  private void setupConnectivityUpdateListener() {
+    DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
+    connectedRef.addValueEventListener(new ValueEventListener() {
+      @Override
+      public void onDataChange(DataSnapshot snapshot) {
+        mIsOnline = snapshot.getValue(Boolean.class);
+        Log.d(TAG, "Online status: " + mIsOnline);
+      }
+
+      @Override
+      public void onCancelled(DatabaseError error) {
+        System.err.println("Listener was cancelled");
+      }
+    });
   }
 }

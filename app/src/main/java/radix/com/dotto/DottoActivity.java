@@ -20,7 +20,7 @@ import android.view.WindowManager;
 import com.thebluealliance.spectrum.SpectrumDialog;
 
 import radix.com.dotto.controllers.UserGestureController;
-import radix.com.dotto.models.WorldMap;
+import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.views.PixelGridSurfaceView;
 
@@ -28,7 +28,7 @@ public class DottoActivity extends AppCompatActivity {
   private static final String TAG = DottoActivity.class.toString();
 
   private PixelGridSurfaceView mGameView;
-  private WorldMap mWorldMap;
+  private WorldModel mWorldModel;
   private GestureDetectorCompat mGestureDetector;
   private ScaleGestureDetector mScaleGestureDetector;
   private UserGestureController mUserGestureController;
@@ -85,10 +85,10 @@ public class DottoActivity extends AppCompatActivity {
   }
 
   private void setupGameState() {
-    mWorldMap = new WorldMap();
-    mUserGestureController = new UserGestureController(mWorldMap);
+    mWorldModel = new WorldModel();
+    mUserGestureController = new UserGestureController(mWorldModel);
     mGameView = (PixelGridSurfaceView) findViewById(R.id.gameView);
-    mGameView.setModelAndController(mWorldMap, mUserGestureController);
+    mGameView.setModelAndController(mWorldModel, mUserGestureController);
     mUserGestureController.setViewInterface(mGameView);
 
     mGestureDetector = new GestureDetectorCompat(this, new GestureListener());
@@ -104,14 +104,14 @@ public class DottoActivity extends AppCompatActivity {
   @Override
   protected void onPause() {
     super.onPause();
-    mWorldMap.setIsPlaying(false);
+    mWorldModel.setIsPlaying(false);
     mGameView.setPlaying(false);
   }
 
   @Override
   protected void onResume() {
     super.onResume();
-    mWorldMap.setIsPlaying(true);
+    mWorldModel.setIsPlaying(true);
     mGameView.setPlaying(true);
   }
 
@@ -138,20 +138,20 @@ public class DottoActivity extends AppCompatActivity {
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
-      Log.d(TAG, "single tap");
+      Log.v(TAG, "single tap");
       mUserGestureController.onUserRequestFocus(getPointFromMotionEvent(motionEvent));
       return true;
     }
 
     @Override
     public void onLongPress(MotionEvent motionEvent) {
-      Log.d(TAG, "long press");
+      Log.v(TAG, "long press");
       mUserGestureController.onUserLongTap(getPointFromMotionEvent(motionEvent));
     }
 
     @Override
     public boolean onDoubleTap(MotionEvent motionEvent) {
-      Log.d(TAG, "double tap");
+      Log.v(TAG, "double tap");
       mUserGestureController.onUserRequestFocus(getPointFromMotionEvent(motionEvent));
       return true;
     }

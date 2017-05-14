@@ -23,7 +23,7 @@ import radix.com.dotto.controllers.ControllerState;
 import radix.com.dotto.controllers.DotInfo;
 import radix.com.dotto.controllers.UserGestureController;
 import radix.com.dotto.models.IModelInterface;
-import radix.com.dotto.models.WorldMap;
+import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.utils.framerate.FramerateTracker;
 import radix.com.dotto.utils.framerate.FramerateUtils;
@@ -72,7 +72,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     super(context);
   }
 
-  public void setModelAndController(WorldMap map, UserGestureController userGestureController) {
+  public void setModelAndController(WorldModel map, UserGestureController userGestureController) {
     this.mUserGestureController = userGestureController;
     mWorldMap = map;
 

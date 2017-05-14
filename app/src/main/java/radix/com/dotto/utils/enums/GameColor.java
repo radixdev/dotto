@@ -34,6 +34,8 @@ public enum GameColor {
    * Color/int array of all possible game colors
    */
   public static final int[] ALL_COLOR_VALUES = new int[GameColor.values().length];
+
+  // Populate the values array
   static {
     for (int i = 0; i < colors.length; i++) {
       ALL_COLOR_VALUES[i] = colors[i].getColor();
