@@ -17,6 +17,7 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.thebluealliance.spectrum.SpectrumDialog;
@@ -39,9 +40,6 @@ public class DottoActivity extends AppCompatActivity {
   private GestureDetectorCompat mGestureDetector;
   private ScaleGestureDetector mScaleGestureDetector;
   private UserGestureController mUserGestureController;
-
-  // View hybrids
-  private TextView mTimeoutTextview;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -66,30 +64,32 @@ public class DottoActivity extends AppCompatActivity {
     });
 
     // Listen for timeout changes
-    mTimeoutTextview = (TextView) findViewById(R.id.timeoutTextView);
+    final RelativeLayout timeoutLayout = (RelativeLayout) findViewById(R.id.layoutTimeout);
+    final TextView timeoutTextView = (TextView) findViewById(R.id.timeoutTextView);
 
     mWorldModel.setModelUpdateListener(new IModelUpdateListener() {
       @Override
       public void onWriteTimeoutChange(long timeRemainingMs) {
         if (timeRemainingMs > 50L) {
           // Mark the view as visible
-          mTimeoutTextview.setVisibility(View.VISIBLE);
+          timeoutLayout.setVisibility(View.VISIBLE);
         } else {
-          mTimeoutTextview.setVisibility(View.GONE);
+          timeoutLayout.setVisibility(View.GONE);
           return;
         }
 
         // format the time
         new CountDownTimer(timeRemainingMs, 500L) {
           public void onTick(long millisUntilFinished) {
-            Date date = new Date(millisUntilFinished + 1000L);
+            Date date = new Date(millisUntilFinished);
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("m:ss", Locale.US);
 
-            mTimeoutTextview.setText(simpleDateFormat.format(date));
+            timeoutTextView.setText(simpleDateFormat.format(date));
           }
 
           public void onFinish() {
-            mTimeoutTextview.setVisibility(View.GONE);
+            // TODO: 5/14/2017 Fade the timeout to invisible instead of just "gone"-ing it
+            timeoutLayout.setVisibility(View.GONE);
           }
         }.start();
       }
