@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import radix.com.dotto.controllers.UserGestureController;
+import radix.com.dotto.controllers.UserController;
 import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.models.abstractors.IModelUpdateListener;
 import radix.com.dotto.utils.enums.GameColor;
@@ -39,7 +39,7 @@ public class DottoActivity extends AppCompatActivity {
   private WorldModel mWorldModel;
   private GestureDetectorCompat mGestureDetector;
   private ScaleGestureDetector mScaleGestureDetector;
-  private UserGestureController mUserGestureController;
+  private UserController mUserController;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +55,7 @@ public class DottoActivity extends AppCompatActivity {
     setupGameState();
 
     final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fabColorPreferenceButton);
-    fab.setBackgroundTintList(ColorStateList.valueOf(mUserGestureController.getColorChoice().getColor()));
+    fab.setBackgroundTintList(ColorStateList.valueOf(mUserController.getColorChoice().getColor()));
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -112,7 +112,7 @@ public class DottoActivity extends AppCompatActivity {
               for (int i = 0; i < GameColor.ALL_COLOR_VALUES.length; i++) {
                 if (GameColor.ALL_COLOR_VALUES[i] == selectedColor) {
                   // set the color
-                  mUserGestureController.setUserColorChoice(GameColor.values()[i]);
+                  mUserController.setUserColorChoice(GameColor.values()[i]);
                   Log.d(TAG, "Selected color of : " + GameColor.values()[i]);
                   fab.setBackgroundTintList(ColorStateList.valueOf(selectedColor));
                   break;
@@ -126,10 +126,10 @@ public class DottoActivity extends AppCompatActivity {
 
   private void setupGameState() {
     mWorldModel = new WorldModel();
-    mUserGestureController = new UserGestureController(mWorldModel);
+    mUserController = new UserController(mWorldModel);
     mGameView = (PixelGridSurfaceView) findViewById(R.id.gameView);
-    mGameView.setModelAndController(mWorldModel, mUserGestureController);
-    mUserGestureController.setViewInterface(mGameView);
+    mGameView.setModelAndController(mWorldModel, mUserController);
+    mUserController.setViewInterface(mGameView);
 
     mGestureDetector = new GestureDetectorCompat(this, new GestureListener());
     mScaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
@@ -172,27 +172,27 @@ public class DottoActivity extends AppCompatActivity {
   private class GestureListener extends GestureDetector.SimpleOnGestureListener {
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-      mUserGestureController.onUserScroll(distanceX, distanceY);
+      mUserController.onUserScroll(distanceX, distanceY);
       return true;
     }
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
       Log.v(TAG, "single tap");
-      mUserGestureController.onUserRequestFocus(getPointFromMotionEvent(motionEvent));
+      mUserController.onUserRequestFocus(getPointFromMotionEvent(motionEvent));
       return true;
     }
 
     @Override
     public void onLongPress(MotionEvent motionEvent) {
       Log.v(TAG, "long press");
-      mUserGestureController.onUserLongTap(getPointFromMotionEvent(motionEvent));
+      mUserController.onUserLongTap(getPointFromMotionEvent(motionEvent));
     }
 
     @Override
     public boolean onDoubleTap(MotionEvent motionEvent) {
       Log.v(TAG, "double tap");
-      mUserGestureController.onUserRequestFocus(getPointFromMotionEvent(motionEvent));
+      mUserController.onUserRequestFocus(getPointFromMotionEvent(motionEvent));
       return true;
     }
 
@@ -213,7 +213,7 @@ public class DottoActivity extends AppCompatActivity {
 
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-      mUserGestureController.onUserZoom(detector.getScaleFactor(), new PointF(focusX, focusY));
+      mUserController.onUserZoom(detector.getScaleFactor(), new PointF(focusX, focusY));
       return true;
     }
   }

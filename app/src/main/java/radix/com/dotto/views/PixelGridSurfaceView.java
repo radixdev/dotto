@@ -21,7 +21,7 @@ import java.util.List;
 
 import radix.com.dotto.controllers.ControllerState;
 import radix.com.dotto.controllers.DotInfo;
-import radix.com.dotto.controllers.UserGestureController;
+import radix.com.dotto.controllers.UserController;
 import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.models.abstractors.IModelInterface;
 import radix.com.dotto.utils.enums.GameColor;
@@ -55,7 +55,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   private SquareFocuser mUserFocusAnimator;
 
   // Controller interface
-  private UserGestureController mUserGestureController;
+  private UserController mUserController;
   private IModelInterface mWorldMap;
   private static final float[] SCREEN_CONVERSION_TEST_POINTS_FOUR = new float[4];
   private static final float[] SCREEN_CONVERSION_TEST_POINTS_TWO = new float[2];
@@ -72,8 +72,8 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     super(context);
   }
 
-  public void setModelAndController(WorldModel map, UserGestureController userGestureController) {
-    this.mUserGestureController = userGestureController;
+  public void setModelAndController(WorldModel map, UserController userController) {
+    this.mUserController = userController;
     mWorldMap = map;
 
     mSurfaceHolder = getHolder();
@@ -151,7 +151,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   }
 
   private void drawUserFocusAnimator(Canvas drawContextCanvas) {
-    DotInfo localInfo = mUserGestureController.getUserFocusInfo();
+    DotInfo localInfo = mUserController.getUserFocusInfo();
     // Convert it beforehand
     Point screenPoint = convertLocalPointToScreenPoint(localInfo.getPointX(), localInfo.getPointY());
 
@@ -194,7 +194,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     canvas.drawBitmap(mCanvasBitmap, mTransformMatrix, mPixelPaint);
 
     // HUD
-    if (mUserGestureController.getControllerState() == ControllerState.USER_FOCUSING) {
+    if (mUserController.getControllerState() == ControllerState.USER_FOCUSING) {
       drawUserFocusAnimator(canvas);
     }
     drawCenterOfScreenHUD(canvas);
@@ -206,9 +206,9 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
    * @param matrix
    */
   private void matchScreenSizeMatrix(Matrix matrix) {
-    float scaleFactor = mUserGestureController.getScaleFactor();
-    float screenOffsetX = mUserGestureController.getScreenOffsetX();
-    float screenOffsetY = mUserGestureController.getScreenOffsetY();
+    float scaleFactor = mUserController.getScaleFactor();
+    float screenOffsetX = mUserController.getScreenOffsetX();
+    float screenOffsetY = mUserController.getScreenOffsetY();
 
     matrix.reset();
     matrix.setScale(scaleFactor, scaleFactor);

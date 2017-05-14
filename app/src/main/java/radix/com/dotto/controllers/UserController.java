@@ -12,8 +12,8 @@ import radix.com.dotto.views.IViewInterface;
 /**
  *
  */
-public class UserGestureController {
-  private static final String TAG = UserGestureController.class.toString();
+public class UserController {
+  private static final String TAG = UserController.class.toString();
 
   private static final float MIN_ZOOM = 1.1f;
   private static final float MAX_ZOOM = 150f;
@@ -28,7 +28,7 @@ public class UserGestureController {
   private ControllerState mControllerState = ControllerState.PANNING;
   private DotInfo mUserFocusInfoLocation;
 
-  public UserGestureController(WorldModel worldModel) {
+  public UserController(WorldModel worldModel) {
     mScaleFactor = 20f;
     mScreenOffsetX = 0;
     mScreenOffsetY = 0;
