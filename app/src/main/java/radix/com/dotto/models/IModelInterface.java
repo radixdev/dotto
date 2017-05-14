@@ -4,7 +4,7 @@ import android.graphics.Point;
 
 import java.util.List;
 
-import radix.com.dotto.controllers.PixelInfo;
+import radix.com.dotto.controllers.DotInfo;
 
 /**
  * Interface for interacting with the model
@@ -14,7 +14,12 @@ public interface IModelInterface {
 
   int getWorldHeight();
 
-  void onPixelInfoChange(PixelInfo info);
+  /**
+   * Attempts to write a dot to the model. The dot may not be written based on the current timeout.
+   *
+   * @param info
+   */
+  void onWriteDotInfo(DotInfo info);
 
   /**
    * Gets a list of elements for the view to render.
@@ -22,7 +27,7 @@ public interface IModelInterface {
    * @param maxElements
    * @return
    */
-  List<PixelInfo> getGridInfo(int maxElements);
+  List<DotInfo> getGridInfo(int maxElements);
 
   boolean isLocalPointOutsideWorldBounds(Point localPoint);
 
@@ -30,4 +35,6 @@ public interface IModelInterface {
    * @return true if the model has any pixel infos available
    */
   boolean hasGridInfo();
+
+  void setIsPlaying(boolean isPlaying);
 }

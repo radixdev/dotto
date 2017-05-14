@@ -14,13 +14,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import radix.com.dotto.controllers.PixelInfo;
+import radix.com.dotto.controllers.DotInfo;
 
 public class WorldMap implements IModelInterface {
   private final String TAG = WorldMap.class.toString();
-  private final List<PixelInfo> mPixelData;
-  private final List<PixelInfo> mReturnedPixelData;
+  private final List<DotInfo> mPixelData;
+  private final List<DotInfo> mReturnedPixelData;
   private DatabaseReference mPixelPathReference;
+  private PixelChildChangeListener mPixelChildChangeListener;
 
   public WorldMap() {
     mPixelData = new CopyOnWriteArrayList<>();
@@ -29,11 +30,22 @@ public class WorldMap implements IModelInterface {
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     mPixelPathReference = database.getReference(ProtocolConstants.PIXEL_PATH);
     mPixelPathReference.keepSynced(true);
-    mPixelPathReference.addChildEventListener(new PixelChildChangeListener());
+
+    mPixelChildChangeListener = new PixelChildChangeListener();
   }
 
   @Override
-  public void onPixelInfoChange(PixelInfo info) {
+  public void setIsPlaying(boolean isPlaying) {
+    Log.d(TAG, "Set playing to : " + isPlaying);
+    if (isPlaying) {
+      mPixelPathReference.addChildEventListener(mPixelChildChangeListener);
+    } else {
+      mPixelPathReference.removeEventListener(mPixelChildChangeListener);
+    }
+  }
+
+  @Override
+  public void onWriteDotInfo(DotInfo info) {
     // verify the info is correct
     if (info.getPointX() < 0 || info.getPointX() > getWorldWidth() || info.getPointY() < 0 || info.getPointY() > getWorldHeight()) {
       Log.d(TAG, "Tried to draw out of bounds: " + info);
@@ -51,11 +63,11 @@ public class WorldMap implements IModelInterface {
    * @return a list of tap infos. These objects are not guaranteed to exist beyond the current frame!
    */
   @Override
-  public List<PixelInfo> getGridInfo(int maxElements) {
+  public List<DotInfo> getGridInfo(int maxElements) {
     Log.d(TAG, "Got pixels: " + mPixelData.size());
     mReturnedPixelData.clear();
 
-    List<PixelInfo> pixelList = Collections.synchronizedList(mPixelData);
+    List<DotInfo> pixelList = Collections.synchronizedList(mPixelData);
     synchronized (pixelList) {
       // "It's time to pop off" - Obama
       while (!pixelList.isEmpty() && mReturnedPixelData.size() < maxElements) {
@@ -69,9 +81,9 @@ public class WorldMap implements IModelInterface {
     String key = dataSnapshot.getKey();
     int colorCode = (int) (long) dataSnapshot.getValue();
 
-    PixelInfo info = ProtocolHandler.getPixelInfoFromData(key, colorCode);
+    DotInfo info = ProtocolHandler.getPixelInfoFromData(key, colorCode);
 
-    List<PixelInfo> infoList = Collections.synchronizedList(mPixelData);
+    List<DotInfo> infoList = Collections.synchronizedList(mPixelData);
     synchronized (infoList) {
       infoList.add(info);
     }
@@ -85,13 +97,11 @@ public class WorldMap implements IModelInterface {
 
     @Override
     public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-//      Log.v(TAG, "onChildChanged called " + dataSnapshot);
       addPixelInfo(dataSnapshot);
     }
 
     @Override
     public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-//      Log.v(TAG, "onChildAdded called " + dataSnapshot);
       addPixelInfo(dataSnapshot);
     }
 

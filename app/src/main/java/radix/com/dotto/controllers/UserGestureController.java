@@ -26,7 +26,7 @@ public class UserGestureController {
   private GameColor mColorChoice;
   // Controller state
   private ControllerState mControllerState = ControllerState.PANNING;
-  private PixelInfo mUserFocusInfoLocation;
+  private DotInfo mUserFocusInfoLocation;
 
   public UserGestureController(WorldMap worldMap) {
     mScaleFactor = 20f;
@@ -36,7 +36,7 @@ public class UserGestureController {
     mColorChoice = GameColor.CHAMBRAY;
 
     // TODO: 5/6/2017 test line. Remove this
-    mUserFocusInfoLocation = new PixelInfo(GameColor.DARK_GREEN, 100, 100);
+    mUserFocusInfoLocation = new DotInfo(GameColor.DARK_GREEN, 100, 100);
   }
 
   public void setViewInterface(IViewInterface viewInterface) {
@@ -96,8 +96,8 @@ public class UserGestureController {
     doZoom(MAX_ZOOM / mScaleFactor, touch);
 
     // If the previous focus location was at the same point
-    PixelInfo previousInfo = mUserFocusInfoLocation;
-    mUserFocusInfoLocation = new PixelInfo(mColorChoice, new Point(localPoint.x, localPoint.y));
+    DotInfo previousInfo = mUserFocusInfoLocation;
+    mUserFocusInfoLocation = new DotInfo(mColorChoice, new Point(localPoint.x, localPoint.y));
 
     if (!stateChanged && mUserFocusInfoLocation.equals(previousInfo)) {
       // The state went from focusing to focusing again but at the same position
@@ -115,12 +115,12 @@ public class UserGestureController {
       return;
     }
     // Pass the touch to the model
-    PixelInfo info = new PixelInfo(mColorChoice, localPoint);
+    DotInfo info = new DotInfo(mColorChoice, localPoint);
     applyDotFromUser(info);
   }
 
-  private void applyDotFromUser(PixelInfo info) {
-    mWorldMap.onPixelInfoChange(info);
+  private void applyDotFromUser(DotInfo info) {
+    mWorldMap.onWriteDotInfo(info);
   }
 
   public void setUserColorChoice(GameColor colorChoice) {
@@ -129,7 +129,7 @@ public class UserGestureController {
     if (mControllerState == ControllerState.USER_FOCUSING) {
       // Assign the color using the focus point
       if (mUserFocusInfoLocation != null) {
-        applyDotFromUser(new PixelInfo(colorChoice, mUserFocusInfoLocation));
+        applyDotFromUser(new DotInfo(colorChoice, mUserFocusInfoLocation));
       } else {
         Log.d(TAG, "Tried to apply null pixel info from the user focus!");
       }
@@ -152,7 +152,7 @@ public class UserGestureController {
     return mScreenOffsetY;
   }
 
-  public PixelInfo getUserFocusInfo() {
+  public DotInfo getUserFocusInfo() {
     return mUserFocusInfoLocation;
   }
 

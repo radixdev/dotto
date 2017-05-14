@@ -8,17 +8,17 @@ import radix.com.dotto.utils.enums.GameColor;
 /**
  * A class for parcelling info to the model from the controller
  */
-public class PixelInfo {
+public class DotInfo {
   private final GameColor color;
   private final int pointX, pointY;
 
-  public PixelInfo(GameColor color, Point pointLocation) {
+  public DotInfo(GameColor color, Point pointLocation) {
     this.color = color;
     this.pointX = pointLocation.x;
     this.pointY = pointLocation.y;
   }
 
-  public PixelInfo(GameColor color, int pointX, int pointY) {
+  public DotInfo(GameColor color, int pointX, int pointY) {
     this.color = color;
     this.pointX = pointX;
     this.pointY = pointY;
@@ -29,7 +29,7 @@ public class PixelInfo {
    * @param color
    * @param otherInfo
    */
-  public PixelInfo(GameColor color, PixelInfo otherInfo) {
+  public DotInfo(GameColor color, DotInfo otherInfo) {
     this.color = color;
     this.pointX = otherInfo.pointX;
     this.pointY = otherInfo.pointY;
@@ -53,7 +53,7 @@ public class PixelInfo {
 
   @Override
   public String toString() {
-    return "PixelInfo{" +
+    return "DotInfo{" +
         "color=" + color.getColor() +
         ", pointX=" + pointX +
         ", pointY=" + pointY +
@@ -65,7 +65,7 @@ public class PixelInfo {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    PixelInfo info = (PixelInfo) o;
+    DotInfo info = (DotInfo) o;
 
     if (pointX != info.pointX) return false;
     if (pointY != info.pointY) return false;

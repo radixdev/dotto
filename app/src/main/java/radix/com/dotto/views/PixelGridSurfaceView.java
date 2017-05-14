@@ -20,7 +20,7 @@ import android.view.SurfaceView;
 import java.util.List;
 
 import radix.com.dotto.controllers.ControllerState;
-import radix.com.dotto.controllers.PixelInfo;
+import radix.com.dotto.controllers.DotInfo;
 import radix.com.dotto.controllers.UserGestureController;
 import radix.com.dotto.models.IModelInterface;
 import radix.com.dotto.models.WorldMap;
@@ -151,7 +151,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   }
 
   private void drawUserFocusAnimator(Canvas drawContextCanvas) {
-    PixelInfo localInfo = mUserGestureController.getUserFocusInfo();
+    DotInfo localInfo = mUserGestureController.getUserFocusInfo();
     // Convert it beforehand
     Point screenPoint = convertLocalPointToScreenPoint(localInfo.getPointX(), localInfo.getPointY());
 
@@ -180,9 +180,9 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
     // Pop from the model
     if (mWorldMap.hasGridInfo()) {
-      List<PixelInfo> taps = mWorldMap.getGridInfo(1000);
+      List<DotInfo> taps = mWorldMap.getGridInfo(1000);
       for (int i = 0, tapsSize = taps.size(); i < tapsSize; i++) {
-        PixelInfo info = taps.get(i);
+        DotInfo info = taps.get(i);
         mPixelPaint.setColor(info.getColorInt());
         mBackingCanvas.drawPoint(info.getPointX(), info.getPointY(), mPixelPaint);
       }
@@ -269,6 +269,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     if (playing) {
       mGameThread = new Thread(this);
       mGameThread.start();
+      where = 0;
     } else {
       try {
         mGameThread.join();

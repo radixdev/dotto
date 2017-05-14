@@ -1,7 +1,7 @@
 package radix.com.dotto.models;
 
 import radix.com.dotto.BuildConfig;
-import radix.com.dotto.controllers.PixelInfo;
+import radix.com.dotto.controllers.DotInfo;
 import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.utils.freebasing.BaseConverter;
 
@@ -16,7 +16,7 @@ public class ProtocolHandler {
     return xPart + ProtocolConstants.PIXEL_SEPARATOR + yPart;
   }
 
-  public static PixelInfo getPixelInfoFromData(String key, int colorCode) {
+  public static DotInfo getPixelInfoFromData(String key, int colorCode) {
     if (BuildConfig.DEBUG) {
       if (!key.contains(ProtocolConstants.PIXEL_SEPARATOR)) {
         throw new RuntimeException("key doesn't contain separator " + key + " and sep " + ProtocolConstants.PIXEL_SEPARATOR);
@@ -28,6 +28,6 @@ public class ProtocolHandler {
 
     int xValue = BaseConverter.baseValueToDecimal(xPart, BaseConverter.BASE_MAXIMUM);
     int yValue = BaseConverter.baseValueToDecimal(yPart, BaseConverter.BASE_MAXIMUM);
-    return new PixelInfo(GameColor.getGameColorByCode(colorCode), xValue, yValue);
+    return new DotInfo(GameColor.getGameColorByCode(colorCode), xValue, yValue);
   }
 }

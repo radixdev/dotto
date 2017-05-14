@@ -104,12 +104,14 @@ public class DottoActivity extends AppCompatActivity {
   @Override
   protected void onPause() {
     super.onPause();
+    mWorldMap.setIsPlaying(false);
     mGameView.setPlaying(false);
   }
 
   @Override
   protected void onResume() {
     super.onResume();
+    mWorldMap.setIsPlaying(true);
     mGameView.setPlaying(true);
   }
 
