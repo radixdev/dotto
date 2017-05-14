@@ -5,6 +5,10 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import radix.com.dotto.controllers.abstractors.IControllerUpdateListener;
 import radix.com.dotto.controllers.haptic.VibrateHandler;
 import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.models.abstractors.IModelInterface;
@@ -30,6 +34,8 @@ public class UserController {
   // Controller state
   private ControllerState mControllerState = ControllerState.PANNING;
   private DotInfo mUserFocusInfoLocation;
+
+  private List<IControllerUpdateListener> mUpdateListeners = new ArrayList<>();
 
   public UserController(WorldModel worldModel, Context context) {
     mScaleFactor = 20f;
@@ -128,13 +134,22 @@ public class UserController {
     if (mWorldMap.getTimeUntilNextWrite() > 0L || mWorldMap.getIsOffline()) {
       Log.w(TAG, "Not applying user dot due to timeout or offline status");
       mVibrateHandler.performFailure();
+
+      for (IControllerUpdateListener listener : mUpdateListeners) {
+        listener.onUserWriteFailed();
+      }
       return;
     }
 
-    // There's a high chance that the write will succeed at this point. Just do the vibration here
-    mVibrateHandler.performSuccess();
+    // Perform the thing
     mWorldMap.onWriteDotInfo(info);
     changeControllerState(ControllerState.PANNING);
+
+    // There's a high chance that the write will succeed at this point. Just do the vibration here
+    mVibrateHandler.performSuccess();
+    for (IControllerUpdateListener listener : mUpdateListeners) {
+      listener.onUserWriteSucceeded();
+    }
   }
 
   public void setUserColorChoice(GameColor colorChoice) {
@@ -189,5 +204,9 @@ public class UserController {
 
   public ControllerState getControllerState() {
     return mControllerState;
+  }
+
+  public void setControllerUpdateListener(IControllerUpdateListener listener) {
+    mUpdateListeners.add(listener);
   }
 }

@@ -17,6 +17,8 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -27,6 +29,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import radix.com.dotto.controllers.UserController;
+import radix.com.dotto.controllers.abstractors.IControllerUpdateListener;
 import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.models.abstractors.IModelUpdateListener;
 import radix.com.dotto.utils.enums.GameColor;
@@ -40,6 +43,9 @@ public class DottoActivity extends AppCompatActivity {
   private GestureDetectorCompat mGestureDetector;
   private ScaleGestureDetector mScaleGestureDetector;
   private UserController mUserController;
+
+  private RelativeLayout mTimeoutLayout;
+  private TextView mTimeoutTextView;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -64,17 +70,35 @@ public class DottoActivity extends AppCompatActivity {
     });
 
     // Listen for timeout changes
-    final RelativeLayout timeoutLayout = (RelativeLayout) findViewById(R.id.layoutTimeout);
-    final TextView timeoutTextView = (TextView) findViewById(R.id.timeoutTextView);
+    mTimeoutLayout = (RelativeLayout) findViewById(R.id.layoutTimeout);
+    mTimeoutTextView = (TextView) findViewById(R.id.timeoutTextView);
+    setupModelUpdates();
 
+    // animation handling
+    mTimeoutLayout.setClipChildren(false);
+    final Animation shakeAnimation = AnimationUtils.loadAnimation(this, R.anim.simple_mover);
+    mUserController.setControllerUpdateListener(new IControllerUpdateListener() {
+      @Override
+      public void onUserWriteFailed() {
+//        fab.startAnimation(shakeAnimation);
+        mTimeoutLayout.startAnimation(shakeAnimation);
+      }
+
+      @Override
+      public void onUserWriteSucceeded() {
+      }
+    });
+  }
+
+  private void setupModelUpdates() {
     mWorldModel.setModelUpdateListener(new IModelUpdateListener() {
       @Override
       public void onWriteTimeoutChange(long timeRemainingMs) {
         if (mWorldModel.isUserTimedOut()) {
           // Mark the view as visible
-          timeoutLayout.setVisibility(View.VISIBLE);
+          mTimeoutLayout.setVisibility(View.VISIBLE);
         } else {
-          timeoutLayout.setVisibility(View.GONE);
+          mTimeoutLayout.setVisibility(View.GONE);
           return;
         }
 
@@ -84,12 +108,12 @@ public class DottoActivity extends AppCompatActivity {
             Date date = new Date(millisUntilFinished);
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("m:ss", Locale.US);
 
-            timeoutTextView.setText(simpleDateFormat.format(date));
+            mTimeoutTextView.setText(simpleDateFormat.format(date));
           }
 
           public void onFinish() {
             // TODO: 5/14/2017 Fade the timeout to invisible instead of just "gone"-ing it
-            timeoutLayout.setVisibility(View.GONE);
+            mTimeoutLayout.setVisibility(View.GONE);
           }
         }.start();
       }
