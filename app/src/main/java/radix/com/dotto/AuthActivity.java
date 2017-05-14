@@ -18,7 +18,7 @@ import java.util.List;
 public class AuthActivity extends AppCompatActivity {
   private static final String TAG = AuthActivity.class.toString();
 
-  private static final int RC_SIGN_IN = 123;
+  private static final int RC_SIGN_IN = 9001;
   private static final List<AuthUI.IdpConfig> AUTH_PROVIDERS = new ArrayList<>();
   static {
     AUTH_PROVIDERS.add(new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER)
@@ -36,6 +36,8 @@ public class AuthActivity extends AppCompatActivity {
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
+    // TODO: 5/13/2017 Can add a formal "press this to sign in" button later
+    // Can also add an "Anon" sign-in as well
     FirebaseAuth auth = FirebaseAuth.getInstance();
     if (auth.getCurrentUser() != null && !auth.getCurrentUser().isAnonymous()) {
       // already signed in
@@ -46,7 +48,7 @@ public class AuthActivity extends AppCompatActivity {
       startActivityForResult(
           AuthUI.getInstance()
               .createSignInIntentBuilder()
-              .setIsSmartLockEnabled(false)
+              .setIsSmartLockEnabled(true)
               .setProviders(AUTH_PROVIDERS)
               .build(),
           RC_SIGN_IN);
@@ -73,25 +75,20 @@ public class AuthActivity extends AppCompatActivity {
         if (response == null) {
           // User pressed back button
           Log.d(TAG, "User cancelled back button");
-          return;
-        }
-
-        if (response.getErrorCode() == ErrorCodes.NO_NETWORK) {
+        } else if (response.getErrorCode() == ErrorCodes.NO_NETWORK) {
           Log.d(TAG, "No network");
-          return;
-        }
-
-        if (response.getErrorCode() == ErrorCodes.UNKNOWN_ERROR) {
+        } else if (response.getErrorCode() == ErrorCodes.UNKNOWN_ERROR) {
           Log.d(TAG, "Unknown error");
-          return;
         }
+        finish();
       }
       Log.d(TAG, "Who knows lol");
     }
   }
 
   private void startGameActivity() {
-//    startActivity(new Intent(this, DottoActivity.class));
+    startActivity(new Intent(this, DottoActivity.class));
     Log.d(TAG, "Going to game now");
+    finish();
   }
 }
