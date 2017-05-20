@@ -24,6 +24,7 @@
 
   <RelativeLayout
       android:id="@+id/layoutTimeout"
+      android:visibility="gone"
       android:layout_width="90dp"
       android:layout_height="45dp"
       android:layout_marginLeft="8dp"

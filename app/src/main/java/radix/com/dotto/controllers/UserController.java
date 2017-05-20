@@ -133,11 +133,7 @@ public class UserController {
   private void applyDotFromUser(DotInfo info) {
     if (mWorldMap.getTimeUntilNextWrite() > 0L || mWorldMap.getIsOffline()) {
       Log.w(TAG, "Not applying user dot due to timeout or offline status");
-      mVibrateHandler.performFailure();
-
-      for (IControllerUpdateListener listener : mUpdateListeners) {
-        listener.onUserWriteFailed();
-      }
+      afterWriteComplete(false);
       return;
     }
 
@@ -146,10 +142,7 @@ public class UserController {
     changeControllerState(ControllerState.PANNING);
 
     // There's a high chance that the write will succeed at this point. Just do the vibration here
-    mVibrateHandler.performSuccess();
-    for (IControllerUpdateListener listener : mUpdateListeners) {
-      listener.onUserWriteSucceeded();
-    }
+    afterWriteComplete(true);
   }
 
   public void setUserColorChoice(GameColor colorChoice) {
@@ -157,10 +150,17 @@ public class UserController {
 
     if (mControllerState == ControllerState.USER_FOCUSING) {
       // Assign the color using the focus point
-      if (mUserFocusInfoLocation != null && !mWorldMap.getIsOffline() && !mWorldMap.isUserTimedOut()) {
-        applyDotFromUser(new DotInfo(colorChoice, mUserFocusInfoLocation));
-      } else {
+      if (mUserFocusInfoLocation == null) {
         Log.d(TAG, "Tried to apply null pixel info from the user focus!");
+        return;
+      }
+      if (mWorldMap.getIsOffline() || mWorldMap.isUserTimedOut()) {
+        // User can't draw, so vibrate as failure
+        afterWriteComplete(false);
+        changeControllerState(ControllerState.PANNING);
+        Log.d(TAG, "User can't draw with color selected and timed out, so vibrate as failure");
+      } else {
+        applyDotFromUser(new DotInfo(colorChoice, mUserFocusInfoLocation));
       }
     }
   }
@@ -208,5 +208,18 @@ public class UserController {
 
   public void setControllerUpdateListener(IControllerUpdateListener listener) {
     mUpdateListeners.add(listener);
+  }
+
+  private void afterWriteComplete(boolean isSuccess) {
+    if (isSuccess) {
+      for (IControllerUpdateListener listener : mUpdateListeners) {
+        listener.onUserWriteSucceeded();
+      }
+    } else {
+      mVibrateHandler.performFailure();
+      for (IControllerUpdateListener listener : mUpdateListeners) {
+        listener.onUserWriteFailed();
+      }
+    }
   }
 }
