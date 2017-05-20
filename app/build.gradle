@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+def date = new Date()
+def formattedDate = date.format('yyMMddHHmm')
+def versionCodeFromDate = formattedDate.toInteger()
+
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
@@ -7,7 +11,7 @@ android {
         applicationId "radix.com.dotto"
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 1
+        versionCode versionCodeFromDate
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
