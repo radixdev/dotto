@@ -21,7 +21,6 @@ public class SquareFocuser extends TimeAnimatorBase {
   private int halfWidth;
   private int halfHeight;
   private final Matrix matrix;
-  private final float[] HSV_VALUES = new float[]{0, 1, 1};
   private final Rect entireBitmapRect;
 
   public SquareFocuser(BitmapContainer bitmapContainer) {
@@ -43,8 +42,7 @@ public class SquareFocuser extends TimeAnimatorBase {
     containerCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
     // draw a square
-    HSV_VALUES[0] = (getElapsed() / 16f) % 360;
-    paint.setColor(Color.HSVToColor(HSV_VALUES));
+    paint.setColor(Color.BLACK);
     containerCanvas.drawRect(entireBitmapRect, paint);
 
     // Back draw
