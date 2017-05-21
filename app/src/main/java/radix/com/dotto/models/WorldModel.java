@@ -245,7 +245,9 @@ public class WorldModel implements IModelInterface {
 
   @Override
   public boolean isUserTimedOut() {
-    return getTimeUntilNextWrite() > 0L;
+    final long timeUntilNextWrite = getTimeUntilNextWrite();
+    Log.i(TAG, "timeout: " + timeUntilNextWrite);
+    return timeUntilNextWrite > 750L;
   }
 
   private void setupConnectivityUpdateListener() {

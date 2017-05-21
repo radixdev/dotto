@@ -46,6 +46,7 @@ public class DottoActivity extends AppCompatActivity {
 
   private RelativeLayout mTimeoutLayout;
   private TextView mTimeoutTextView;
+  private CountDownTimer mTimeoutCountDown;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -111,7 +112,11 @@ public class DottoActivity extends AppCompatActivity {
         }
 
         // format the time
-        new CountDownTimer(timeRemainingMs, 500L) {
+        if (mTimeoutCountDown != null) {
+          // Prevent multiple timers from writing at the same damn time
+          mTimeoutCountDown.cancel();
+        }
+        mTimeoutCountDown = new CountDownTimer(timeRemainingMs, 500L) {
           public void onTick(long millisUntilFinished) {
             Date date = new Date(millisUntilFinished);
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("m:ss", Locale.US);
