@@ -60,14 +60,23 @@ public class DottoActivity extends AppCompatActivity {
     setContentView(R.layout.activity_main);
     setupGameState();
 
-    final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fabColorPreferenceButton);
-    fab.setBackgroundTintList(ColorStateList.valueOf(mUserController.getColorChoice().getColor()));
-    fab.setOnClickListener(new View.OnClickListener() {
+    final FloatingActionButton fabColorPreference = (FloatingActionButton) findViewById(R.id.fabColorPreferenceButton);
+    fabColorPreference.setBackgroundTintList(ColorStateList.valueOf(mUserController.getColorChoice().getColor()));
+    fabColorPreference.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        createColorPicker(context, fab);
+        createColorPicker(context, fabColorPreference);
       }
     });
+
+    final FloatingActionButton fabRecenterFocus = (FloatingActionButton) findViewById(R.id.fabRecenter);
+    fabRecenterFocus.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        mUserController.recenterUserPosition();
+      }
+    });
+
 
     // Listen for timeout changes
     mTimeoutLayout = (RelativeLayout) findViewById(R.id.layoutTimeout);
@@ -80,7 +89,6 @@ public class DottoActivity extends AppCompatActivity {
     mUserController.setControllerUpdateListener(new IControllerUpdateListener() {
       @Override
       public void onUserWriteFailed() {
-//        fab.startAnimation(shakeAnimation);
         mTimeoutLayout.startAnimation(shakeAnimation);
       }
 

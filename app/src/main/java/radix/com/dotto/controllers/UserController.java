@@ -67,6 +67,7 @@ public class UserController {
 
   /**
    * Performs a zoom. No state change is made.
+   *
    * @param zoomFactor
    * @param zoomCenterScreen
    */
@@ -163,6 +164,12 @@ public class UserController {
         applyDotFromUser(new DotInfo(colorChoice, mUserFocusInfoLocation));
       }
     }
+  }
+
+  public void recenterUserPosition() {
+    mScaleFactor = 10f;
+    mScreenOffsetX = -mWorldMap.getWorldWidth();
+    mScreenOffsetY = -mWorldMap.getWorldHeight();
   }
 
   public GameColor getColorChoice() {
