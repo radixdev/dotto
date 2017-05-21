@@ -7,7 +7,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="radix.com.dotto.DottoActivity">
 
-  <!--<radix.com.dotto.views.PixelGridSurfaceView android:id="@+id/gameView" android:layout_width="match_parent" android:layout_height="match_parent"/>-->
+  <radix.com.dotto.views.PixelGridSurfaceView android:id="@+id/gameView" android:layout_width="match_parent" android:layout_height="match_parent"/>
 
   <android.support.design.widget.FloatingActionButton
       android:id="@+id/fabColorPreferenceButton"
@@ -15,11 +15,12 @@
       android:layout_height="wrap_content"
       android:layout_gravity="bottom|end"
       android:layout_margin="@dimen/fab_margin"
-      android:layout_marginRight="8dp"
-      app:layout_constraintRight_toRightOf="parent"
-      app:layout_constraintBottom_toBottomOf="parent"
       android:layout_marginBottom="8dp"
-      android:layout_marginEnd="8dp"/>
+      android:layout_marginEnd="8dp"
+      android:layout_marginRight="8dp"
+      app:fabSize="mini"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintRight_toRightOf="parent"/>
 
   <android.support.design.widget.FloatingActionButton
       android:id="@+id/fabRecenter"
@@ -30,6 +31,7 @@
       android:layout_marginEnd="8dp"
       android:layout_marginRight="16dp"
       app:backgroundTint="@color/authui_inputTextColorDark"
+      app:fabSize="mini"
       app:layout_constraintBottom_toTopOf="@+id/fabColorPreferenceButton"
       app:layout_constraintRight_toRightOf="parent"
       app:srcCompat="@android:drawable/ic_menu_compass"/>
@@ -58,7 +60,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:text="10:02"
+        android:text="00:00"
         android:textColor="@color/white"
         android:textSize="33sp"/>
   </RelativeLayout>
