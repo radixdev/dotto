@@ -276,11 +276,13 @@ public class WorldModel implements IModelInterface {
     mConfigTimeoutListener = new ValueEventListener() {
       @Override
       public void onDataChange(DataSnapshot snapshot) {
-        mConfigTimeoutSeconds = snapshot.getValue(Integer.class);
-        Log.d(TAG, "Config timeout: " + mConfigTimeoutSeconds);
+        if (snapshot.exists()) {
+          mConfigTimeoutSeconds = snapshot.getValue(Integer.class);
+          Log.d(TAG, "Config timeout: " + mConfigTimeoutSeconds);
 
-        for (IModelUpdateListener listener : mModelListeners) {
-          listener.onWriteTimeoutChange(getTimeUntilNextWrite());
+          for (IModelUpdateListener listener : mModelListeners) {
+            listener.onWriteTimeoutChange(getTimeUntilNextWrite());
+          }
         }
       }
 
@@ -298,11 +300,13 @@ public class WorldModel implements IModelInterface {
     mUserTurnstileListener = new ValueEventListener() {
       @Override
       public void onDataChange(DataSnapshot snapshot) {
-        mLastServerWriteTime = snapshot.getValue(Long.class);
-        Log.d(TAG, "Last server write time: " + mLastServerWriteTime);
+        if (snapshot.exists()) {
+          mLastServerWriteTime = snapshot.getValue(Long.class);
+          Log.d(TAG, "Last server write time: " + mLastServerWriteTime);
 
-        for (IModelUpdateListener listener : mModelListeners) {
-          listener.onWriteTimeoutChange(getTimeUntilNextWrite());
+          for (IModelUpdateListener listener : mModelListeners) {
+            listener.onWriteTimeoutChange(getTimeUntilNextWrite());
+          }
         }
       }
 

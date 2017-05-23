@@ -24,7 +24,6 @@ import radix.com.dotto.controllers.DotInfo;
 import radix.com.dotto.controllers.UserController;
 import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.models.abstractors.IModelInterface;
-import radix.com.dotto.utils.enums.GameColor;
 import radix.com.dotto.utils.framerate.FramerateTracker;
 import radix.com.dotto.utils.framerate.FramerateUtils;
 import radix.com.dotto.views.animator.SquareFocuser;
@@ -44,6 +43,11 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   private int mScreenWidth, mScreenHeight;
   private PointF mScreenCenterCoordinate;
   private FramerateTracker mFramerateTracker;
+
+  /**
+   * True when the game state (like
+   */
+  private boolean mIsGameReady = false;
 
   private Canvas mBackingCanvas = null;
   private Matrix mTransformMatrix;
@@ -85,25 +89,18 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   @Override
   public void run() {
     while (mIsGamePlaying) {
+      // The game ready var is needed since the drawing occurs in the game thread
+      // and the surface created callback is on the main thread
+      if (!mIsGameReady) {
+        continue;
+      }
+
       long start = System.currentTimeMillis();
       executeDraw();
       long end = System.currentTimeMillis();
       final long frameTime = end - start;
       mFramerateTracker.addFrameTime(frameTime);
       controlFramerate(frameTime);
-    }
-  }
-
-  private void controlFramerate(long frameTime) {
-    // Sleep a bit maybe
-    long sleepTime = FramerateUtils.getRefreshIntervalFromFramerate(60) - frameTime;
-    if (sleepTime <= 0) {
-      return;
-    }
-    try {
-      Thread.sleep(sleepTime);
-    } catch (InterruptedException e) {
-      Log.e(TAG, "Exception while sleeping in game loop", e);
     }
   }
 
@@ -169,14 +166,14 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     // Background
     drawBackground(canvas);
 
-    // The good stuff
-    final int size = 1000;
-    for (int i = 0; i < 1; i++) {
-      mPixelPaint.setColor(GameColor.getRandomColor());
-      mBackingCanvas.drawPoint(where % size, 0, mPixelPaint);
-      mBackingCanvas.drawPoint(0, where % size, mPixelPaint);
-      where++;
-    }
+//    // The good stuff
+//    final int size = 1000;
+//    for (int i = 0; i < 1; i++) {
+//      mPixelPaint.setColor(GameColor.getRandomColor());
+//      mBackingCanvas.drawPoint(where % size, 0, mPixelPaint);
+//      mBackingCanvas.drawPoint(0, where % size, mPixelPaint);
+//      where++;
+//    }
 
     // Pop from the model
     if (mWorldMap.hasGridInfo()) {
@@ -217,6 +214,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
   @Override
   public void surfaceCreated(SurfaceHolder surfaceHolder) {
+    Log.d(TAG, "Surface created called");
     mScreenWidth = getWidth();
     mScreenHeight = getHeight();
     mScreenCenterCoordinate = new PointF(mScreenWidth / 2, mScreenHeight / 2);
@@ -242,6 +240,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
         .build();
 
     mUserFocusAnimator = new SquareFocuser(mUserTapFocusContainer);
+    mIsGameReady = true;
   }
 
   private void createCenterOfScreenHud() {
@@ -287,6 +286,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
   @Override
   public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
     Log.d(TAG, "surfaceDestroyed called");
+    mIsGameReady = false;
   }
 
   @Override
@@ -339,6 +339,19 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
       default:
         Log.d(TAG, "got unknown state: " + newState);
+    }
+  }
+
+  private void controlFramerate(long frameTime) {
+    // Sleep a bit maybe
+    long sleepTime = FramerateUtils.getRefreshIntervalFromFramerate(60) - frameTime;
+    if (sleepTime <= 0) {
+      return;
+    }
+    try {
+      Thread.sleep(sleepTime);
+    } catch (InterruptedException e) {
+      Log.e(TAG, "Exception while sleeping in game loop", e);
     }
   }
 }
