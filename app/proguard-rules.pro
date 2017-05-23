@@ -26,3 +26,5 @@
 
 -keep class com.thebluealliance.spectrum.** { *; }
 -dontwarn com.thebluealliance.**
+
+-dontwarn com.firebase.ui.auth.provider.Twitter**
