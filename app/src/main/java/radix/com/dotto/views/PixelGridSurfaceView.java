@@ -141,7 +141,9 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     final Paint paint = mCenterOfScreenContainer.getPaint();
 
     Point centerPoint = convertScreenPointToLocalPoint(mScreenCenterCoordinate);
-    final String hudText = "(" + centerPoint.x + ", " + centerPoint.y + ")";
+    // Add 1 to each coord so the board is (1, 1000) and not (0, 999)
+    // /r/ProgrammerHumor :(
+    final String hudText = "(" + ++centerPoint.x + ", " + ++centerPoint.y + ")";
     containerCanvas.drawText(hudText, mCenterOfScreenContainer.getBitmapWidth() / 2, mCenterOfScreenContainer.getBitmapHeight() - 5, paint);
 
     drawContextCanvas.drawBitmap(mCenterOfScreenContainer.getBitmap(), mCenterOfScreenContainer.getViewTransform(), paint);

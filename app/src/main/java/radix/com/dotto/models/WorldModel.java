@@ -222,8 +222,8 @@ public class WorldModel implements IModelInterface {
 
   @Override
   public boolean isLocalPointOutsideWorldBounds(Point localPoint) {
-    return (localPoint.x < 0 || localPoint.x > getWorldWidth() ||
-        localPoint.y < 0 || localPoint.y > getWorldHeight());
+    return (localPoint.x < 0 || localPoint.x >= getWorldWidth() ||
+        localPoint.y < 0 || localPoint.y >= getWorldHeight());
   }
 
   @Override
