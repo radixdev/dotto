@@ -157,23 +157,12 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     mUserFocusAnimator.draw(drawContextCanvas, screenPoint.x, screenPoint.y, pixelLength);
   }
 
-  int where = 0;
-
   @Override
   public void draw(Canvas canvas) {
     super.draw(canvas);
 
     // Background
     drawBackground(canvas);
-
-//    // The good stuff
-//    final int size = 1000;
-//    for (int i = 0; i < 1; i++) {
-//      mPixelPaint.setColor(GameColor.getRandomColor());
-//      mBackingCanvas.drawPoint(where % size, 0, mPixelPaint);
-//      mBackingCanvas.drawPoint(0, where % size, mPixelPaint);
-//      where++;
-//    }
 
     // Pop from the model
     if (mWorldMap.hasGridInfo()) {
@@ -268,7 +257,6 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     if (playing) {
       mGameThread = new Thread(this);
       mGameThread.start();
-      where = 0;
     } else {
       try {
         mGameThread.join();
@@ -344,7 +332,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
   private void controlFramerate(long frameTime) {
     // Sleep a bit maybe
-    long sleepTime = FramerateUtils.getRefreshIntervalFromFramerate(60) - frameTime;
+    long sleepTime = FramerateUtils.getRefreshIntervalFromFramerate(90) - frameTime;
     if (sleepTime <= 0) {
       return;
     }
