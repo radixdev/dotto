@@ -60,8 +60,8 @@ public enum GameColor {
     return this.ordinal();
   }
 
-  public static @ColorInt int getRandomColor() {
-    return colors[random.nextInt(colors.length)].getColor();
+  public static GameColor getRandomColor() {
+    return colors[random.nextInt(colors.length)];
   }
 
   public static GameColor getGameColorByCode(int code) {

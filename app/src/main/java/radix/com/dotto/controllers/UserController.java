@@ -7,6 +7,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import radix.com.dotto.controllers.abstractors.IControllerUpdateListener;
 import radix.com.dotto.controllers.haptic.VibrateHandler;
@@ -38,14 +39,12 @@ public class UserController {
   private List<IControllerUpdateListener> mUpdateListeners = new ArrayList<>();
 
   public UserController(WorldModel worldModel, Context context) {
-    mScaleFactor = 20f;
-    mScreenOffsetX = 0;
-    mScreenOffsetY = 0;
+    Random random = new Random();
+    mScaleFactor = random.nextFloat() * 3f + 17f;
+    mScreenOffsetX = -random.nextInt(200) * mScaleFactor;
+    mScreenOffsetY = -random.nextInt(200) * mScaleFactor;
     mWorldMap = worldModel;
-    mColorChoice = GameColor.CHAMBRAY;
-
-    // TODO: 5/6/2017 test line. Remove this
-    mUserFocusInfoLocation = new DotInfo(GameColor.DARK_GREEN, 100, 100);
+    mColorChoice = GameColor.getRandomColor();
 
     mVibrateHandler = new VibrateHandler(context);
   }
