@@ -1,5 +1,5 @@
 # dotto
-like /r/place but it doesn't work
+/r/place clone. https://play.google.com/store/apps/details?id=radix.com.dotto
 
 # building
 1. Link to your own firebase realtime database.
