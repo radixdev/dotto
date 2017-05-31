@@ -24,6 +24,7 @@ import radix.com.dotto.controllers.DotInfo;
 import radix.com.dotto.controllers.UserController;
 import radix.com.dotto.models.WorldModel;
 import radix.com.dotto.models.abstractors.IModelInterface;
+import radix.com.dotto.utils.NumberUtils;
 import radix.com.dotto.utils.framerate.FramerateTracker;
 import radix.com.dotto.utils.framerate.FramerateUtils;
 import radix.com.dotto.views.animator.SquareFocuser;
@@ -136,15 +137,16 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     // Re-draw the canvas then apply the text
     Canvas containerCanvas = mCenterOfScreenContainer.getCanvas();
     containerCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-    containerCanvas.drawColor(Color.argb(25, 255, 255, 255));
 
     final Paint paint = mCenterOfScreenContainer.getPaint();
 
     Point centerPoint = convertScreenPointToLocalPoint(mScreenCenterCoordinate);
     // Add 1 to each coord so the board is (1, 1000) and not (0, 999)
-    // /r/ProgrammerHumor :(
-    final String hudText = "(" + ++centerPoint.x + ", " + ++centerPoint.y + ")";
-    containerCanvas.drawText(hudText, mCenterOfScreenContainer.getBitmapWidth() / 2, mCenterOfScreenContainer.getBitmapHeight() - 5, paint);
+    int beyond = 100000;
+    int centerX = NumberUtils.clamp(++centerPoint.x, -beyond, beyond);
+    int centerY = NumberUtils.clamp(++centerPoint.y, -beyond, beyond);
+    final String hudText = "(" + centerX + ", " + centerY + ")";
+    containerCanvas.drawText(hudText, 0, mCenterOfScreenContainer.getBitmapHeight() - 5, paint);
 
     drawContextCanvas.drawBitmap(mCenterOfScreenContainer.getBitmap(), mCenterOfScreenContainer.getViewTransform(), paint);
   }
@@ -236,7 +238,7 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
   private void createCenterOfScreenHud() {
     mCenterOfScreenContainer = new BitmapContainerBuilder()
-        .setBitmapWidth(300, 50)
+        .setBitmapWidth(500, 50)
         .build();
 
     // de-offset this to the screen bottom left
@@ -244,10 +246,10 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
     matrix.setTranslate(0, mScreenHeight - mCenterOfScreenContainer.getBitmapHeight());
 
     final Paint paint = mCenterOfScreenContainer.getPaint();
-    paint.setTextAlign(Paint.Align.CENTER);
+    paint.setTextAlign(Paint.Align.LEFT);
     paint.setColor(Color.BLACK);
-    paint.setTypeface(Typeface.SERIF);
-    paint.setTextSize(50f);
+    paint.setTypeface(Typeface.MONOSPACE);
+    paint.setTextSize(45f);
     paint.setAntiAlias(true);
   }
 
