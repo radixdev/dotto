@@ -153,6 +153,10 @@ public class PixelGridSurfaceView extends SurfaceView implements IViewInterface,
 
   private void drawUserFocusAnimator(Canvas drawContextCanvas) {
     DotInfo localInfo = mUserController.getUserFocusInfo();
+    if (localInfo == null) {
+      return;
+    }
+
     // Convert it beforehand
     Point screenPoint = convertLocalPointToScreenPoint(localInfo.getPointX(), localInfo.getPointY());
 
